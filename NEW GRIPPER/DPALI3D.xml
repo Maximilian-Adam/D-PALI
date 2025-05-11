@@ -1,0 +1,129 @@
+<mujoco>
+    <size njmax="500" nconmax="100" nuser_jnt="1" nuser_site="1" nuser_sensor="1" nuser_actuator="5"
+        nstack="600000"></size>
+
+    <visual>
+        <map fogstart="3" fogend="5" force="0.1"></map>
+        <quality shadowsize="4096"></quality>
+    </visual>
+
+    <asset>
+        <!-- this defines texture -> material -> model -->
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512"
+            height="512" />
+        <!-- plane texture -->
+        <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2"
+            width="512" height="512" mark="cross" markrgb=".8 .8 .8" />
+        <!-- material to be refered to in geoms -->
+        <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="100 100"
+            texuniform="true" />
+
+        <!-- Mesh files to be called by geoms (in gripper-worked) -->
+        
+        <!--Linkages files-->
+        <mesh name="Back_Link_L" file="Back_Link_L.STL" /> 
+        <mesh name="Short_Link_L" file="Short_Link_L.STL" />
+        <mesh name="Front_Link_L" file="Front_Link_L.STL" /> 
+        <mesh name="Long_Link_L" file="Long_Link_L.STL" />
+
+        <mesh name="Back_Link_R" file="Back_Link_R.STL" /> 
+        <mesh name="Short_Link_R" file="Short_Link_R.STL" />
+        <mesh name="Front_Link_R" file="Front_Link_R.STL" /> 
+        <mesh name="Long_Link_R" file="Long_Link_R.STL" />
+        <!--Reusing files for left link for our 3rd link, which I've called U (up)-->
+        <mesh name="Back_Link_U" file="Back_Link_L.STL"/>"
+        <mesh name="Short_Link_U" file="Short_Link_L.STL"/>
+        <mesh name="Front_Link_U" file="Front_Link_L.STL" /> 
+        <mesh name="Long_Link_U" file="Long_Link_L.STL" />
+        <!--Files for our new base and other new parts-->
+        <mesh name="main_base" file="main_base.STL"/> <!--Big circular base-->
+        <mesh name="base_middlecap" file="base_middlecap.STL"/> <!--Thing that looks like a washer--> 
+        <mesh name="mainbase_top" file="mainbase_top.STL"/> <!--Covers the base?-->
+        <!--Bases that connect the 'fingers' to the main base-->
+        <mesh name="finger_base_L" file="finger_base.STL"/>
+        <mesh name="finger_base_R" file="finger_base.STL"/>
+        <mesh name="finger_base_U" file="finger_base.STL"/>
+        <!--Gears, 2 for each finger-->
+        <mesh name="moon_gear_L1" file="moon_gear(30 teeth).STL"/>
+        <mesh name="moon_gear_L2" file="moon_gear(30 teeth).STL"/>
+        <mesh name="moon_gear_R1" file="moon_gear(30 teeth).STL"/>
+        <mesh name="moon_gear_R2" file="moon_gear(30 teeth).STL"/>
+        <mesh name="moon_gear_U1" file="moon_gear(30 teeth).STL"/>
+        <mesh name="moon_gear_U2" file="moon_gear(30 teeth).STL"/>
+        <!--Dynamixel servos model-->
+        <mesh name="Servo_L" file="motor.STL"/>
+        <mesh name="Servo_R" file="motor.STL"/>
+        <mesh name="Servo_U" file="motor.STL"/>
+
+    </asset>
+
+    <default><!-- All geoms/joints defined below are dummies, which can be called upon when making the actual model-->
+
+        <!-- Visual class? (dummy geoms)-->
+        <default class="visual">
+            <geom type="mesh" solref=".004 1" contype="0" conaffinity="0" group="0"></geom>
+        </default>
+
+        <!-- Collisions class (dummy geoms) -->
+         <!--This expression must be true for objects to collide: (contype1 & conaffinity2) || (contype2 & conaffinity1)-->
+         <!-- If type and/or affinity values are changed, can AND the numbers manually to check for collisions -->
+         <!-- priority: geom with higher priority has its condim used for collisions, if they're the same the larger condim is used-->
+          <!--atm,longlink has no collisions with anything | long_link, hard_tip and object collide with each other, platform collides with object only -->
+        <default class="collision">
+            <default class="longlink">
+                <geom type="mesh"      contype="0" conaffinity="0"  group="1" priority="1"></geom>
+            </default>
+            <default class="Hard_tip">
+                <geom type="cylinder"  contype="2" conaffinity="6"  group="1" condim="3"></geom>
+            </default>
+            <default class="object">
+                <geom type="box"       contype="4" conaffinity="11" group="1" priority="1" solref="1e-4" solimp="1e3 1e3 1e3" condim="3"></geom>
+            </default>
+            <default class="platform">
+                <geom                  contype="8" conaffinity="4"  group="1" mass="1e3" condim="3"></geom>
+            </default>
+        </default>
+
+         <!-- (Dummy) Joints defined below-->
+          <!--armature mimics inertia associated with the motor, making it more realistic-->
+        <default class="elbow"><!--Joint between Long_Link and Short_link-->
+            <joint type="hinge" damping="5.71287639e-02" armature="1.44810901e-09" solreflimit="1e-5"/>
+        </default>
+        <default class="Jxm330H"><!--Joint between servo and Back_link-->
+            <joint type="hinge" damping="2.28616804e+00" armature="4.82599651e-02" />
+        </default>
+        <default class="Jxm330F"><!--Joint between servo and Front_link-->
+            <joint type="hinge" damping="2.99875446e+00" armature="7.70645609e-02" />
+        </default>
+        <default class="JS"><!--Joint between Back_Link and Short_Link-->
+            <joint type="hinge" damping="1.29884556e-02" armature="0.00000000e+00" solreflimit="1e-5"/>
+        </default>
+
+    </default>
+
+    <!-- Remove from lines 106 to 126 to make DPALI3D complile-->
+
+    <equality><!--Equality contraints (basc connects the front link and long (curved) link, since they're not connected in the kinematic tree)-->
+        <connect name="Connect_L" active="true" body1="robot0:Long_Link_L" body2="robot0:Front_Link_L" anchor="0.0405 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
+        <connect name="Connect_R" active="true" body1="robot0:Long_Link_R" body2="robot0:Front_Link_R" anchor="0.0405 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
+        <connect name="Connect_U" active="true" body1="robot0:Long_Link_U" body2="robot0:Front_Link_U" anchor="0.0405 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
+    </equality>
+
+    <actuator><!--Sets up actuators. Back and front joint are for the linkages connecting to the servos. Base actuators are for moving the fingers radially around the base.
+        I've used the same actuator for the base, but needs to be changed when we actually choose the actuator for the base-->
+        <position name="0" joint="robot0:Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="1" joint="robot0:Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="2" joint="robot0:Base_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+
+        <position name="3" joint="robot0:Front_Joint_L" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="4" joint="robot0:Back_Joint_L"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="5" joint="robot0:Base_L" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+
+        <position name="6" joint="robot0:Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="7" joint="robot0:Back_Joint_U"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="8" joint="robot0:Base_U" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+    </actuator>
+
+
+
+</mujoco>
