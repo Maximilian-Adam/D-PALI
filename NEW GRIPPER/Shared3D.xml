@@ -104,24 +104,24 @@
     <!-- Remove from lines 106 to 126 to make DPALI3D complile-->
 
     <equality><!--Equality contraints (basc connects the front link and long (curved) link, since they're not connected in the kinematic tree)-->
-        <connect name="Connect_L" active="true" body1="robot0:Long_Link_L" body2="robot0:Front_Link_L" anchor="0.0405 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
-        <connect name="Connect_R" active="true" body1="robot0:Long_Link_R" body2="robot0:Front_Link_R" anchor="0.0405 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
-        <connect name="Connect_U" active="true" body1="robot0:Long_Link_U" body2="robot0:Front_Link_U" anchor="0.0405 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
+        <connect name="Connect_L" active="true" body1="Long_Link_L" body2="Front_Link_L" anchor="37 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
+        <!-- <connect name="Connect_R" active="true" body1="Long_Link_R" body2="Front_Link_R" anchor="0.0405 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
+        <connect name="Connect_U" active="true" body1="Long_Link_U" body2="Front_Link_U" anchor="0.0405 0 0" solref="1e-9" solimp="1e9 1e9 1e9" /> -->
     </equality>
 
     <actuator><!--Sets up actuators. Back and front joint are for the linkages connecting to the servos. Base actuators are for moving the fingers radially around the base.
         I've used the same actuator for the base, but needs to be changed when we actually choose the actuator for the base-->
-        <position name="0" joint="robot0:Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="1" joint="robot0:Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="2" joint="robot0:Base_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="0" joint="Front_Joint_L" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="1" joint="Back_Joint_L"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="2" joint="Base_L" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
-        <position name="3" joint="robot0:Front_Joint_L" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="4" joint="robot0:Back_Joint_L"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="5" joint="robot0:Base_L" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <!-- <position name="3" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="4" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="5" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
-        <position name="6" joint="robot0:Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="7" joint="robot0:Back_Joint_U"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="8" joint="robot0:Base_U" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="6" joint="Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="7" joint="Back_Joint_U"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="8" joint="Base_U" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/> -->
     </actuator>
 
 
