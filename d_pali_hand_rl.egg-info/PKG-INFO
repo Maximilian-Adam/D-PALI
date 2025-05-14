@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: d_pali_hand_rl
+Version: 0.1.0
+Summary: Gymnasium environment for the DPALI dexterous hand
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: gymnasium
+Requires-Dist: mujoco
+Requires-Dist: numpy
+
+# D-PALI
+Repo For D-Pali Project

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "d_pali_hand_rl"
+version = "0.1.0"
+description = "Gymnasium environment for the DPALI dexterous hand"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "gymnasium",
+    "mujoco",
+    "numpy"
+]
+
+[tool.setuptools.packages.find]
+include = ["envs*"]
