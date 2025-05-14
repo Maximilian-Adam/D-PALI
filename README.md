@@ -8,6 +8,10 @@ Repo For D-Pali Project
   ```bash
   python -m venv venvName
   ```
+- Activate your venv
+    ```bash
+    venvName/scripts/activate
+    ```
 - Install required files
   ```bash
   pip install -r requirements.txt
