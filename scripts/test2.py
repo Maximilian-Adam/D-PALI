@@ -6,7 +6,7 @@ from glfw import GLFWError
 env = gym.make("DPALIHand-v0", render_mode="human")
 obs, _ = env.reset(seed=0)
 
-for _ in range(200):
+for _ in range(500):
     action, _ = env.action_space.sample(), None
     obs, reward, terminated, truncated, info = env.step(action)
     env.render()                 
