@@ -1,7 +1,8 @@
-from stable_baselines3 import SAC
-from sb3_contrib import TQC
+from gymnasium.envs.registration import register
+from .d_pali_hand import DPALI_Hand
 
-env = gym.make("d_pali_hand-v0")
-model = SAC("MultiInputPolicy", env, verbose=1)
-model.learn(3_000_000)
-model.save("d_pali_hand_sac")
+register(
+    id="DPALIHand-v0",
+    entry_point="envs.d_pali_hand:DPALI_Hand",
+    max_episode_steps=200,        # tweak 
+)
