@@ -1,2 +1,5 @@
 d_pali/
 training/logs/
+envs/__pycache__/
+D-Pali_venv/
+d_pali_hand_rl.egg-info/
