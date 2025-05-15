@@ -4,40 +4,40 @@
         <geom name="root" type="mesh" class="visual" density="0" rgba="0.5 0.5 0.8 1" mesh="Main_Base"/> <!--main circular base-->
 
        <!--Finger 1 (Left)-->
-       <body name="Base_L" pos="-60 0 0" euler="0 0 0">
+       <body name="Base_L" pos="-0.060 0 0" euler="0 0 0">
             <inertial pos="0 0 0" euler="0 0 0" mass="0.001" diaginertia="9.37005e-04 8.15608e-04 4.73725e-04" />
-            <joint name="Base_L" pos="60 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
+            <joint name="Base_L" pos="0.060 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
             <geom name="Base_L" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" /> <!--Finger base-->
             
             <!--Back link-->
-            <body name="Back_Link_L" pos="-62.5 5 0" euler="0 0 2">
+            <body name="Back_Link_L" pos="-0.0625 0.005 0" euler="0 0 2">
                 <inertial pos="-0.000350268 0.0180111 -1.86653e-06" quat="0.999872 -8.5692e-05 -0.000105773 0.0159827" mass="0.001" diaginertia="9.37005e-07 8.15608e-07 4.73725e-07" />
                 <joint name="Back_Joint_L" class="Jxm330H" axis="0 0 1" range="-1 1.84"/>
                 <geom name="Back_Link_L" class="visual" rgba="1 0.6 0.15 1" mesh="Back_Link"/> 
             
                 <!--Short link-->
-                <body name="Short_Link_L" pos="0 37 0" euler="0 3.14 1">
+                <body name="Short_Link_L" pos="0 0.037 0" euler="0 3.14 1">
                     <inertial pos="0.020595 0.0025243 -7.7917e-08" quat="0.0333534 0.70632 -0.0333534 0.70632" mass="0.001" diaginertia="6.4109e-07 6.21195e-07 5.7554e-08"/>
                     <joint name="Short_Joint_L" axis="0 0 1" range="-1.57 0.000" class="JS"/>
                     <geom name="Short_Link_L" class="visual" rgba="1 0.6 0.15 1" mesh="Short_Link"/>
 
                     <!--Long (curved) link-->
-                    <body name="Long_Link_L" pos="40.5 0 0" euler="0 0 -1.4">
+                    <body name="Long_Link_L" pos="0.0408 0 0.004" euler="0 0 -1.4">
                         <inertial pos="0.0735453 -0.00874881 5.23989e-10" quat="0.088758 0.701514 -0.088758 0.701514" mass="0.001" diaginertia="2.01078e-05 1.97593e-05 6.86317e-07" />
                         <joint name="Elbow_Joint_L" class="elbow" axis="0 0 1" range="-0.6 2"/>
                         <geom name="Long_Link_L" class="longlink" rgba="1 0.6 0.15 1" mesh="Long_Link" />
 
                         <!--End effector-->
-                        <site name="Tip_L" pos="175 -40 0" rgba="0 1 1 1" size="10" />
-                        <body name="Hard_tip_L" pos="175 -40 0">
-                            <geom name="Hard_tip_L" class="Hard_tip" type="cylinder" size="8 10" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
+                        <site name="Tip_L" pos="0.174 -0.039 -0.004" rgba="0 1 1 1" size="0.010" />
+                        <body name="Hard_tip_L" pos="0.175 -0.040 0">
+                            <geom name="Hard_tip_L" class="Hard_tip" type="cylinder" size="0.008 0.010" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
                         </body>
                     </body>
                 </body>
             </body>
 
             <!--Front link (connected to long link in shared-worked)-->
-            <body name="Front_Link_L" pos="-52.5 -27.5 0" euler="0 0 2.45">
+            <body name="Front_Link_L" pos="-0.0525 -0.0275 0" euler="0 0 2.45">
                 <inertial pos="1.64302e-06 0.021826 0.000500228" quat="0.49924 0.500664 -0.499738 0.500357" mass="0.001" diaginertia="1.3181e-06 8.8333e-07 8.29623e-07" />
                 <joint name="Front_Joint_L" class="Jxm330F" type="hinge" axis="0 0 1" range="-1.85 0.85"/>
                 <geom name="Front_Link_L" class="visual" rgba="1 0.6 0.15 1" mesh="Front_Link" />
@@ -46,40 +46,40 @@
 
 
         <!--Finger 2 (Right)-->
-       <body name="Base_R" pos="60 0 0" euler="3.14 0 3.14">
+       <body name="Base_R" pos="0.060 0 0" euler="3.14 0 3.14">
             <inertial pos="0 0 0" euler="0 0 0" mass="0.001" diaginertia="9.37005e-04 8.15608e-04 4.73725e-04" />
-            <joint name="Base_R" pos="60 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
+            <joint name="Base_R" pos="0.060 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
             <geom name="Base_R" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" /> <!--Finger base-->
             
             <!--Back link-->
-            <body name="Back_Link_R" pos="-62.5 5 0" euler="0 0 2">
+            <body name="Back_Link_R" pos="-0.0625 0.005 0" euler="0 0 2">
                 <inertial pos="-0.000350268 0.0180111 -1.86653e-06" quat="0.999872 -8.5692e-05 -0.000105773 0.0159827" mass="0.001" diaginertia="9.37005e-07 8.15608e-07 4.73725e-07" />
                 <joint name="Back_Joint_R" class="Jxm330H" axis="0 0 1" range="-1 1.84"/>
                 <geom name="Back_Link_R" class="visual" rgba="1 0.6 0.15 1" mesh="Back_Link"/> 
             
                 <!--Short link-->
-                <body name="Short_Link_R" pos="0 37 0" euler="0 3.14 1">
+                <body name="Short_Link_R" pos="0 0.037 0" euler="0 3.14 1">
                     <inertial pos="0.020595 0.0025243 -7.7917e-08" quat="0.0333534 0.70632 -0.0333534 0.70632" mass="0.001" diaginertia="6.4109e-07 6.21195e-07 5.7554e-08"/>
                     <joint name="Short_Joint_R" axis="0 0 1" range="-1.57 0.000" class="JS"/>
                     <geom name="Short_Link_R" class="visual" rgba="1 0.6 0.15 1" mesh="Short_Link"/>
 
                     <!--Long (curved) link-->
-                    <body name="Long_Link_R" pos="40.5 0 0" euler="0 0 -1.4">
+                    <body name="Long_Link_R" pos="0.0408 0 0.004" euler="0 0 -1.4">
                         <inertial pos="0.0735453 -0.00874881 5.23989e-10" quat="0.088758 0.701514 -0.088758 0.701514" mass="0.001" diaginertia="2.01078e-05 1.97593e-05 6.86317e-07" />
                         <joint name="Elbow_Joint_R" class="elbow" axis="0 0 1" range="-0.6 2"/>
                         <geom name="Long_Link_R" class="longlink" rgba="1 0.6 0.15 1" mesh="Long_Link" />
 
                         <!--End effector-->
-                        <site name="Tip_R" pos="175 -40 0" rgba="0 1 1 1" size="10" />
-                        <body name="Hard_tip_R" pos="175 -40 0">
-                            <geom name="Hard_tip_R" class="Hard_tip" type="cylinder" size="8 10" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
+                        <site name="Tip_R" pos="0.174 -0.039 -0.004" rgba="0 1 1 1" size="0.010" />
+                        <body name="Hard_tip_R" pos="0.175 -0.040 0">
+                            <geom name="Hard_tip_R" class="Hard_tip" type="cylinder" size="0.008 0.010" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
                         </body>
                     </body>
                 </body>
             </body>
 
             <!--Front link (connected to long link in shared-worked)-->
-            <body name="Front_Link_R" pos="-52.5 -27.5 0" euler="0 0 2.45">
+            <body name="Front_Link_R" pos="-0.0525 -0.0275 0" euler="0 0 2.45">
                 <inertial pos="1.64302e-06 0.021826 0.000500228" quat="0.49924 0.500664 -0.499738 0.500357" mass="0.001" diaginertia="1.3181e-06 8.8333e-07 8.29623e-07" />
                 <joint name="Front_Joint_R" class="Jxm330F" type="hinge" axis="0 0 1" range="-1.85 0.85"/>
                 <geom name="Front_Link_R" class="visual" rgba="1 0.6 0.15 1" mesh="Front_Link" />
@@ -88,45 +88,47 @@
 
 
         <!--Finger 3 (Up)-->
-       <body name="Base_U" pos="0 0 60" euler="-1.57 1.57 1.57">
+       <body name="Base_U" pos="0 0 0.060" euler="-1.57 1.57 1.57">
             <inertial pos="0 0 0" euler="0 0 0" mass="0.001" diaginertia="9.37005e-04 8.15608e-04 4.73725e-04" />
-            <joint name="Base_U" pos="60 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
+            <joint name="Base_U" pos="0.060 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
             <geom name="Base_U" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" /> <!--Finger base-->
             
             <!--Back link-->
-            <body name="Back_Link_U" pos="-62.5 5 0" euler="0 0 2">
+            <body name="Back_Link_U" pos="-0.0625 0.005 0" euler="0 0 2">
                 <inertial pos="-0.000350268 0.0180111 -1.86653e-06" quat="0.999872 -8.5692e-05 -0.000105773 0.0159827" mass="0.001" diaginertia="9.37005e-07 8.15608e-07 4.73725e-07" />
                 <joint name="Back_Joint_U" class="Jxm330H" axis="0 0 1" range="-1 1.84"/>
                 <geom name="Back_Link_U" class="visual" rgba="1 0.6 0.15 1" mesh="Back_Link"/> 
             
                 <!--Short link-->
-                <body name="Short_Link_U" pos="0 37 0" euler="0 3.14 1">
+                <body name="Short_Link_U" pos="0 0.037 0" euler="0 3.14 1">
                     <inertial pos="0.020595 0.0025243 -7.7917e-08" quat="0.0333534 0.70632 -0.0333534 0.70632" mass="0.001" diaginertia="6.4109e-07 6.21195e-07 5.7554e-08"/>
                     <joint name="Short_Joint_U" axis="0 0 1" range="-1.57 0.000" class="JS"/>
                     <geom name="Short_Link_U" class="visual" rgba="1 0.6 0.15 1" mesh="Short_Link"/>
 
                     <!--Long (curved) link-->
-                    <body name="Long_Link_U" pos="40.5 0 0" euler="0 0 -1.4">
+                    <body name="Long_Link_U" pos="0.0408 0 0.004" euler="0 0 -1.4">
                         <inertial pos="0.0735453 -0.00874881 5.23989e-10" quat="0.088758 0.701514 -0.088758 0.701514" mass="0.001" diaginertia="2.01078e-05 1.97593e-05 6.86317e-07" />
                         <joint name="Elbow_Joint_U" class="elbow" axis="0 0 1" range="-0.6 2"/>
                         <geom name="Long_Link_U" class="longlink" rgba="1 0.6 0.15 1" mesh="Long_Link" />
 
                         <!--End effector-->
-                        <site name="Tip_U" pos="175 -40 0" rgba="0 1 1 1" size="10" />
-                        <body name="Hard_tip_U" pos="175 -40 0">
-                            <geom name="Hard_tip_U" class="Hard_tip" type="cylinder" size="8 10" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
+                        <site name="Tip_U" pos="0.174 -0.039 -0.004" rgba="0 1 1 1" size="0.010" />
+                        <body name="Hard_tip_U" pos="0.175 -0.040 0">
+                            <geom name="Hard_tip_U" class="Hard_tip" type="cylinder" size="0.008 0.010" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
                         </body>
                     </body>
                 </body>
             </body>
 
             <!--Front link (connected to long link in shared-worked)-->
-            <body name="Front_Link_U" pos="-52.5 -27.5 0" euler="0 0 2.45">
+            <body name="Front_Link_U" pos="-0.0525 -0.0275 0" euler="0 0 2.45">
                 <inertial pos="1.64302e-06 0.021826 0.000500228" quat="0.49924 0.500664 -0.499738 0.500357" mass="0.001" diaginertia="1.3181e-06 8.8333e-07 8.29623e-07" />
                 <joint name="Front_Joint_U" class="Jxm330F" type="hinge" axis="0 0 1" range="-1.85 0.85"/>
                 <geom name="Front_Link_U" class="visual" rgba="1 0.6 0.15 1" mesh="Front_Link" />
             </body>
         </body>
+
+        
     </body>
 
 </mujoco>
