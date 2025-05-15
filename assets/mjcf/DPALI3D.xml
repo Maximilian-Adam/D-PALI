@@ -7,7 +7,7 @@
     -warmstart: enabled means the solver uses data from the previous time step to initialise 'iterative optmization' whatever that means
 -->
     <compiler angle="radian" 
-              meshdir="meshes"
+              meshdir="../meshes"
               balanceinertia="true"
               discardvisual="false"
               autolimits="true"/>
