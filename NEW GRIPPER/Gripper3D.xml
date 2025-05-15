@@ -29,7 +29,7 @@
 
                         <!--End effector-->
                         <site name="Tip_L" pos="0.174 -0.039 -0.004" rgba="0 1 1 1" size="0.010" />
-                        <body name="Hard_tip_L" pos="0.175 -0.040 0">
+                        <body name="Hard_tip_L" pos="0.174 -0.039 -0.004">
                             <geom name="Hard_tip_L" class="Hard_tip" type="cylinder" size="0.008 0.010" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
                         </body>
                     </body>
@@ -71,7 +71,7 @@
 
                         <!--End effector-->
                         <site name="Tip_R" pos="0.174 -0.039 -0.004" rgba="0 1 1 1" size="0.010" />
-                        <body name="Hard_tip_R" pos="0.175 -0.040 0">
+                        <body name="Hard_tip_R" pos="0.174 -0.039 -0.004">
                             <geom name="Hard_tip_R" class="Hard_tip" type="cylinder" size="0.008 0.010" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
                         </body>
                     </body>
@@ -113,7 +113,7 @@
 
                         <!--End effector-->
                         <site name="Tip_U" pos="0.174 -0.039 -0.004" rgba="0 1 1 1" size="0.010" />
-                        <body name="Hard_tip_U" pos="0.175 -0.040 0">
+                        <body name="Hard_tip_U" pos="0.174 -0.039 -0.004">
                             <geom name="Hard_tip_U" class="Hard_tip" type="cylinder" size="0.008 0.010" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
                         </body>
                     </body>
