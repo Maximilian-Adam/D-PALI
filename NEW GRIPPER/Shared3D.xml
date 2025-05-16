@@ -77,7 +77,7 @@
 
     </default>
 
-    <!-- Remove from lines 106 to 126 to make DPALI3D complile-->
+    
 
     <equality><!--Equality contraints (basc connects the front link and long (curved) link, since they're not connected in the kinematic tree)-->
         <connect name="Connect_L" active="true" body1="Long_Link_L" body2="Front_Link_L" anchor="0.037 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
