@@ -1,16 +1,18 @@
-# scripts/test2.py
+import warnings
+from glfw import GLFWError
 import time
 import gymnasium as gym, envs     # registers DPALIHand-v0
-from glfw import GLFWError       
+
+warnings.simplefilter("error", GLFWError)
 
 env = gym.make("DPALIHand-v0", render_mode="human")
 obs, _ = env.reset(seed=0)
 
 for _ in range(500):
-    action, _ = env.action_space.sample(), None
+    action = env.action_space.sample()
     obs, reward, terminated, truncated, info = env.step(action)
-    env.render()                 
-    time.sleep(1/60)            
+    env.render()
+    time.sleep(1/60)
     if terminated or truncated:
         obs, _ = env.reset()
 
