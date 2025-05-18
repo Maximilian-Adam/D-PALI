@@ -33,6 +33,13 @@ class DPALI_Hand(MujocoEnv):
                                             shape=(obs_dim,),
                                             dtype=np.float32)
 
+        def reset(self, *, seed=None, options=None):
+            super().reset(seed=seed)
+            obs = self.reset_model()
+            self.sim.forward()  # Apply manual qpos changes
+            return obs, {}
+
+
         # cache the geom ID of "object0" for our reward
         self._obj_id = mujoco.mj_name2id(
             self.model,
@@ -71,6 +78,11 @@ class DPALI_Hand(MujocoEnv):
     def reset_model(self):
         noise = self.np_random.uniform(-0.02, 0.02, size=self.model.nq)
         self.set_state(self.init_qpos + noise, self.init_qvel * 0)
+        cube_qpos_addr = self.model.body_jntadr[self._cube_id]  # index in qpos
+        cube_x = self.np_random.uniform(-0.2, 0.2)
+        cube_y = self.np_random.uniform(-0.3, 0.0)
+        cube_z = self.np_random.uniform(-0.2, 0.2)
+        self.data.qpos[cube_qpos_addr : cube_qpos_addr + 3] = np.array([cube_x, cube_y, cube_z])
         return self._get_obs()
 
     # ---------- task-specific bits ----------
@@ -100,10 +112,13 @@ class DPALI_Hand(MujocoEnv):
         # between the end effector and the target
         End_Effector_pos = self._get_End_Effector_pos('L')
         target  = self._get_cube_pos()
-        return -np.linalg.norm(End_Effector_pos - target)
+        diff = -np.linalg.norm(End_Effector_pos - target) 
+        diff -= np.linalg.norm(End_Effector_pos - target) 
+        diff -= np.linalg.norm(End_Effector_pos - target)
+        return diff
 
     def _check_done(self):
-        if self._compute_reward() > -0.1:
+        if self._compute_reward() > -0.001:
             return True
         return False
     

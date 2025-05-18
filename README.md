@@ -25,3 +25,16 @@ Repo For D-Pali Project
   python scripts/test2.py
   ```
   
+## PPO training
+The first stage is to train the gripper to catch the cube. The reward function is set to sum of the distance from all end effectors and the cube. 
+### How to run PPO training
+- turn on tensorboard monitoring
+```bash
+pip install tensorboard
+tensorboard --version
+tensorboard --logdir=training/logs/ppo_logs/
+```
+- run training script: make sure you are in the root dir of this repo
+```bash
+python3 ./training/train_PPO.py
+```

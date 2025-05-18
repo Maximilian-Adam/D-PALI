@@ -9,9 +9,9 @@ import glfw
 warnings.simplefilter("error", GLFWError)
 
 env = gym.make("DPALIHand-v0", render_mode="human")
-obs, _ = env.reset(seed=0)
+obs, _ = env.reset()
 
-for _ in range(500):
+for _ in range(5000):
     action = env.action_space.sample()
     obs, reward, terminated, truncated, info = env.step(action)
     env.render()
@@ -20,8 +20,7 @@ for _ in range(500):
     env.unwrapped.print_End_Effector_pos()
     env.unwrapped.print_cube_pos()
 
-    if terminated or truncated:
-        obs, _ = env.reset()
+    obs, _ = env.reset()
 
 try:
     while True:
