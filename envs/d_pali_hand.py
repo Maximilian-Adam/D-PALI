@@ -10,7 +10,8 @@ class DPALI_Hand(MujocoEnv):
     metadata = {"render_modes": ["human", "rgb_array"],
                 "render_fps":     100}
 
-    def __init__(self, xml: str | None = None, frame_skip: int = 5,
+    def __init__(self, xml: str | None = None, 
+                 frame_skip: int = 5,
                  render_mode: str | None = "human"):
 
         xml_path = ASSETS / (xml or "DPALI3D.xml")
@@ -20,6 +21,8 @@ class DPALI_Hand(MujocoEnv):
             frame_skip,
             observation_space=None, 
             render_mode=render_mode,
+            width = 1920,
+            height = 1080,
         )
 
         # real spaces
@@ -35,7 +38,20 @@ class DPALI_Hand(MujocoEnv):
             self.model,
             mujoco.mjtObj.mjOBJ_GEOM,
             b"object0",       
-         )  # returns -1 if the geom isn’t present
+        )  # returns -1 if the geom isn’t present
+
+        # cache the End Effectors geom ID for our reward
+        self._end_effector_id = [
+            mujoco.mj_name2id(self.model,mujoco.mjtObj.mjOBJ_GEOM,b"Hard_tip_L"),
+            mujoco.mj_name2id(self.model,mujoco.mjtObj.mjOBJ_GEOM,b"Hard_tip_R"),
+            mujoco.mj_name2id(self.model,mujoco.mjtObj.mjOBJ_GEOM,b"Hard_tip_U"),
+        ]
+        # cache the cube ID for our reward
+        self._cube_id = mujoco.mj_name2id(
+            self.model,
+            mujoco.mjtObj.mjOBJ_GEOM,
+            b"cube",       
+        )
         
 
     # ---------- helpers ----------
@@ -48,7 +64,7 @@ class DPALI_Hand(MujocoEnv):
         self.do_simulation(action, self.frame_skip)
         obs = self._get_obs()
         reward = self._compute_reward()
-        terminated = False
+        terminated = self._check_done()
         info = {}
         return obs, reward, terminated, False, info
 
@@ -58,13 +74,42 @@ class DPALI_Hand(MujocoEnv):
         return self._get_obs()
 
     # ---------- task-specific bits ----------
+    def _get_all_End_Effector_pos(self)-> np.ndarray:
+        Tip_L_pos = self.data.geom_xpos[self._end_effector_id[0]]
+        Tip_R_pos = self.data.geom_xpos[self._end_effector_id[1]]
+        Tip_U_pos = self.data.geom_xpos[self._end_effector_id[2]]
+        #print(f"End Effector position: {(Tip_L_pos, Tip_R_pos, Tip_U_pos)}")
+        return np.array([Tip_L_pos, Tip_R_pos, Tip_U_pos], dtype=np.float32)
+    def _get_End_Effector_pos(self, tip_name)-> np.ndarray:
+        match tip_name:
+            case "L":
+                return self.data.geom_xpos[self._end_effector_id[0]]
+            case "R":
+                return self.data.geom_xpos[self._end_effector_id[1]]
+            case "U":
+                return self.data.geom_xpos[self._end_effector_id[2]]
+            case _:
+                raise ValueError(f"Unknown tip name: {tip_name}")
+    def _get_cube_pos(self)-> np.ndarray:
+        cube_pos = self.data.geom_xpos[self._cube_id]
+        return cube_pos
+    
     def _compute_reward(self):
-        if self._obj_id < 0:
-            return 0.0
-        # pull the world-space position of that geom
-        obj_pos = self.data.geom_xpos[self._obj_id]
-        target  = np.array([0.1, 0.0, 0.15], dtype=np.float32)
-        return -np.linalg.norm(obj_pos - target)
+        # Should be customized for the training task
+        # here is the example of setting the reward to be the negitive distance
+        # between the end effector and the target
+        End_Effector_pos = self._get_End_Effector_pos('L')
+        target  = self._get_cube_pos()
+        return -np.linalg.norm(End_Effector_pos - target)
 
     def _check_done(self):
+        if self._compute_reward() > -0.1:
+            return True
         return False
+    
+
+    # ---------- debug ----------
+    def print_End_Effector_pos(self):
+        print(f"End Effector position: {self._get_all_End_Effector_pos()}")
+    def print_cube_pos(self):
+        print(f"Cube position: {self._get_cube_pos()}")
