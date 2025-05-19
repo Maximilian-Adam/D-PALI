@@ -23,13 +23,13 @@
         <include file="Gripper3D.xml"/>
 
      <geom name="floor" class="platform" pos="0 -0.160 0" euler="1.57 0 0" size="0.100 0.100 0.001" type="box" rgba="0 0 0 0.25" />
-        <body name="Object" pos="0 -0.125 0">
+        <body name="Object" pos="0 -0.1345 0">
             <joint name="object_joint" type="free" damping="0.01"/>
-            <geom name="Cube" pos="0 0 0" size="0.013 0.013 0.013" rgba="0.5 0.5 0.5 0.5" mass="0.00001" class="object"/>
+            <geom name="Cube" pos="0 0 0" size="0.014 0.014 0.014" rgba="0.5 0.5 0.5 0.5" mass="0.00001" class="object"/>
 
-            <geom name="Object_arrow" type="box" size=".002 .010 .014" rgba="1 0 0 1" class="visual" group="1"/>
-            <geom name="Object_arrow2" type="box" pos="0.0036 0.0084 0.001" quat="1 0 0 0.5" size=".002 .006 .013" rgba="1 0 0 1" class="visual" group="1"/>
-            <geom name="Object_arrow3" type="box" pos="-0.0036 0.0084 0.001" quat="1 0 0 -0.5" size=".002 .006 .013" rgba="1 0 0 1" class="visual" group="1"/>
+            <geom name="Object_arrow" type="box" size=".002 .010 .015" rgba="1 0 0 0.5" class="visual" group="1"/>
+            <geom name="Object_arrow2" type="box" pos="0.0036 0.0084 0.001" quat="1 0 0 0.5" size=".002 .006 .014" rgba="1 0 0 0.5" class="visual" group="1"/>
+            <geom name="Object_arrow3" type="box" pos="-0.0036 0.0084 0.001" quat="1 0 0 -0.5" size=".002 .006 .014" rgba="1 0 0 0.5" class="visual" group="1"/>
 
             <site name="Object:site" pos="0 0 0" rgba="1 1 0 1" size="0.003" />
             <site name="Object:site_L" pos="-0.021 0 0" rgba="0 1 1 1" size="0.003" />
