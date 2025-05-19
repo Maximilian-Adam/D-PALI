@@ -1,5 +1,9 @@
 d_pali/
 training/logs/
+training/checkpoints/
 envs/__pycache__/
 D-Pali_venv/
+RL/
 d_pali_hand_rl.egg-info/
+MUJOCO_LOG.TXT
+training/models/
