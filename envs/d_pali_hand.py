@@ -110,11 +110,12 @@ class DPALI_Hand(MujocoEnv):
         # Should be customized for the training task
         # here is the example of setting the reward to be the negitive distance
         # between the end effector and the target
-        End_Effector_pos = self._get_End_Effector_pos('L')
+        End_Effector_pos = self._get_all_End_Effector_pos()
+
         target  = self._get_cube_pos()
-        diff = -np.linalg.norm(End_Effector_pos - target) 
-        diff -= np.linalg.norm(End_Effector_pos - target) 
-        diff -= np.linalg.norm(End_Effector_pos - target)
+        diff = -np.linalg.norm(End_Effector_pos[0] - target) 
+        diff -= np.linalg.norm(End_Effector_pos[1] - target) 
+        diff -= np.linalg.norm(End_Effector_pos[2] - target)
         return diff
 
     def _check_done(self):

@@ -25,6 +25,7 @@ for _ in range(100000):
     env.render()
     if done:
         print('Done')
+        time.sleep(1/60)
         obs, _ = env.reset()
 
 
