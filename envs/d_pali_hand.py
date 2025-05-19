@@ -57,7 +57,7 @@ class DPALI_Hand(MujocoEnv):
         self._cube_id = mujoco.mj_name2id(
             self.model,
             mujoco.mjtObj.mjOBJ_GEOM,
-            b"cube",       
+            b"Cube",       
         )
         
 
@@ -92,6 +92,7 @@ class DPALI_Hand(MujocoEnv):
         Tip_U_pos = self.data.geom_xpos[self._end_effector_id[2]]
         #print(f"End Effector position: {(Tip_L_pos, Tip_R_pos, Tip_U_pos)}")
         return np.array([Tip_L_pos, Tip_R_pos, Tip_U_pos], dtype=np.float32)
+    
     def _get_End_Effector_pos(self, tip_name)-> np.ndarray:
         match tip_name:
             case "L":
@@ -125,6 +126,8 @@ class DPALI_Hand(MujocoEnv):
     
 
     # ---------- debug ----------
+    def print_obs_dim(self):
+        print(f"Observation space dimension: {self.observation_space.shape}")
     def print_End_Effector_pos(self):
         print(f"End Effector position: {self._get_all_End_Effector_pos()}")
     def print_cube_pos(self):
