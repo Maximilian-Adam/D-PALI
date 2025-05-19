@@ -31,7 +31,7 @@
             <geom name="Object_arrow2" type="box" pos="0.0036 0.0084 0.001" quat="1 0 0 0.5" size=".002 .006 .014" rgba="1 0 0 0.5" class="visual" group="1"/>
             <geom name="Object_arrow3" type="box" pos="-0.0036 0.0084 0.001" quat="1 0 0 -0.5" size=".002 .006 .014" rgba="1 0 0 0.5" class="visual" group="1"/>
 
-            <site name="Object:site" pos="0 0 0" rgba="1 1 0 1" size="0.003" />
+            <site name="Object:COM_site" pos="0 0 0" rgba="1 1 0 1" size="0.003" />
             <site name="Object:site_L" pos="-0.021 0 0" rgba="0 1 1 1" size="0.003" />
             <site name="Object:site_R" pos=" 0.021 0 0" rgba="0 0 1 1" size="0.003" />
             <site name="Object:site_U" pos="0 0 0.021" rgba="0.5 0.5 0.5 1" size="0.003"/>
