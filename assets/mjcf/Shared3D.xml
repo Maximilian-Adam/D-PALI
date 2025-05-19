@@ -27,9 +27,9 @@
         <mesh name="Long_Link" file="Long_Link.STL" />
 
         <!--Files for our new base and other new parts-->
-        <mesh name="Main_Base" file="Main_Base.STL"/> <!--Big circular base-->
+        <mesh name="Main_Base" file="../meshes/main_base.stl"/> <!--Big circular base-->
         <!--Bases that connect the 'fingers' to the main base-->
-        <mesh name="Finger_Base" file="Finger_Base.STL"/>
+        <mesh name="Finger_Base" file="../meshes/finger_base.stl"/>
 
     </asset>
 
