@@ -26,19 +26,12 @@ class DPALI_Hand(MujocoEnv):
         )
 
         # real spaces
-        self.action_space = spaces.Box(-1.0, 1.0, shape=(self.model.nu,),
+        self.action_space = spaces.Box(-1, 1, shape=(self.model.nu,),
                                        dtype=np.float32)
         obs_dim = self._get_obs().size
         self.observation_space = spaces.Box(-np.inf, np.inf,
                                             shape=(obs_dim,),
                                             dtype=np.float32)
-
-        def reset(self, *, seed=None, options=None):
-            super().reset(seed=seed)
-            obs = self.reset_model()
-            self.sim.forward()  # Apply manual qpos changes
-            return obs, {}
-
 
         # cache the geom ID of "object0" for our reward
         self._obj_id = mujoco.mj_name2id(
@@ -68,7 +61,8 @@ class DPALI_Hand(MujocoEnv):
         return obs.astype(np.float32)          # cast to match space
 
     def step(self, action):
-        self.do_simulation(action, self.frame_skip)
+        scaled_action = action * np.pi/3
+        self.do_simulation(scaled_action, self.frame_skip)
         obs = self._get_obs()
         reward = self._compute_reward()
         terminated = self._check_done()
@@ -78,11 +72,16 @@ class DPALI_Hand(MujocoEnv):
     def reset_model(self):
         noise = self.np_random.uniform(-0.02, 0.02, size=self.model.nq)
         self.set_state(self.init_qpos + noise, self.init_qvel * 0)
+
         cube_qpos_addr = self.model.body_jntadr[self._cube_id]  # index in qpos
-        cube_x = self.np_random.uniform(-0.2, 0.2)
-        cube_y = self.np_random.uniform(-0.3, 0.0)
-        cube_z = self.np_random.uniform(-0.2, 0.2)
+
+        cube_x = self.np_random.uniform(-0.1, 0.1)
+        cube_y = self.np_random.uniform(-0.1, 0.0)
+        cube_z = self.np_random.uniform(-0.1, 0.1)
         self.data.qpos[cube_qpos_addr : cube_qpos_addr + 3] = np.array([cube_x, cube_y, cube_z])
+        self.data.qvel[cube_qpos_addr : cube_qpos_addr + 3] = np.array([0.0, 0.0, 0.0])
+        self.set_state(self.data.qpos, self.data.qvel)
+
         return self._get_obs()
 
     # ---------- task-specific bits ----------
@@ -126,8 +125,6 @@ class DPALI_Hand(MujocoEnv):
     
 
     # ---------- debug ----------
-    def print_obs_dim(self):
-        print(f"Observation space dimension: {self.observation_space.shape}")
     def print_End_Effector_pos(self):
         print(f"End Effector position: {self._get_all_End_Effector_pos()}")
     def print_cube_pos(self):
