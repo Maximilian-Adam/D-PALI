@@ -25,12 +25,12 @@
                     <body name="Long_Link_L" pos="0.0408 0 0.004" euler="0 0 -1.4">
                         <inertial pos="0.0735453 -0.00874881 5.23989e-10" quat="0.088758 0.701514 -0.088758 0.701514" mass="0.001" diaginertia="2.01078e-05 1.97593e-05 6.86317e-07" />
                         <joint name="Elbow_Joint_L" class="elbow" axis="0 0 1" range="-0.6 2"/>
-                        <geom name="Long_Link_L" class="longlink" rgba="1 0.6 0.15 1" mesh="Long_Link" />
+                        <geom name="Long_Link_L" class="longlink" rgba="1 0.6 0.15 0.3" mesh="Long_Link" />
 
                         <!--End effector-->
-                        <site name="Tip_L" pos="0.174 -0.039 -0.004" rgba="0 1 1 1" size="0.010" />
-                        <body name="Hard_tip_L" pos="0.174 -0.039 -0.004">
-                            <geom name="Hard_tip_L" class="Hard_tip" type="cylinder" size="0.008 0.010" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
+                        <site name="Tip_L" pos="0.1748 -0.0385 -0.004" rgba="0 1 1 1" size="0.001" />
+                        <body name="Hard_tip_L" pos="0.1748 -0.0385 -0.004">
+                            <geom name="Hard_tip_L" class="Hard_tip" type="sphere" size="0.010" rgba="0.125 0.785 0.785 1" mass="0.00001"/>
                         </body>
                     </body>
                 </body>
@@ -67,12 +67,12 @@
                     <body name="Long_Link_R" pos="0.0408 0 0.004" euler="0 0 -1.4">
                         <inertial pos="0.0735453 -0.00874881 5.23989e-10" quat="0.088758 0.701514 -0.088758 0.701514" mass="0.001" diaginertia="2.01078e-05 1.97593e-05 6.86317e-07" />
                         <joint name="Elbow_Joint_R" class="elbow" axis="0 0 1" range="-0.6 2"/>
-                        <geom name="Long_Link_R" class="longlink" rgba="1 0.6 0.15 1" mesh="Long_Link" />
+                        <geom name="Long_Link_R" class="longlink" rgba="1 0.6 0.15 0.3" mesh="Long_Link" />
 
                         <!--End effector-->
-                        <site name="Tip_R" pos="0.174 -0.039 -0.004" rgba="0 1 1 1" size="0.010" />
-                        <body name="Hard_tip_R" pos="0.174 -0.039 -0.004">
-                            <geom name="Hard_tip_R" class="Hard_tip" type="cylinder" size="0.008 0.010" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
+                        <site name="Tip_R" pos="0.1748 -0.0385 -0.004" rgba="0 1 1 1" size="0.001" />
+                        <body name="Hard_tip_R" pos="0.1748 -0.0385 -0.004">
+                            <geom name="Hard_tip_R" class="Hard_tip" type="sphere" size="0.010" rgba="0.125 0.785 0.785 1" mass="0.00001"/>
                         </body>
                     </body>
                 </body>
@@ -109,12 +109,12 @@
                     <body name="Long_Link_U" pos="0.0408 0 0.004" euler="0 0 -1.4">
                         <inertial pos="0.0735453 -0.00874881 5.23989e-10" quat="0.088758 0.701514 -0.088758 0.701514" mass="0.001" diaginertia="2.01078e-05 1.97593e-05 6.86317e-07" />
                         <joint name="Elbow_Joint_U" class="elbow" axis="0 0 1" range="-0.6 2"/>
-                        <geom name="Long_Link_U" class="longlink" rgba="1 0.6 0.15 1" mesh="Long_Link" />
+                        <geom name="Long_Link_U" class="longlink" rgba="1 0.6 0.15 0.3" mesh="Long_Link" />
 
                         <!--End effector-->
-                        <site name="Tip_U" pos="0.174 -0.039 -0.004" rgba="0 1 1 1" size="0.010" />
-                        <body name="Hard_tip_U" pos="0.174 -0.039 -0.004">
-                            <geom name="Hard_tip_U" class="Hard_tip" type="cylinder" size="0.008 0.010" rgba="0.125 0.785 0.785 0" mass="0.00001"/>
+                        <site name="Tip_U" pos="0.1748 -0.0385 -0.004" rgba="0 1 1 1" size="0.001" />
+                        <body name="Hard_tip_U" pos="0.1748 -0.0385 -0.004">
+                            <geom name="Hard_tip_U" class="Hard_tip" type="sphere" size="0.010" rgba="0.125 0.785 0.785 1" mass="0.00001"/>
                         </body>
                     </body>
                 </body>
