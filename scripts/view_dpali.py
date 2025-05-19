@@ -27,7 +27,7 @@ def make_goal_env(xml=None, render_mode="human"):
 
         def _get_obs_dict(self):
             obs = self._get_obs()
-            achieved = self.data.geom_xpos[self._obj_id].copy().astype(np.float32)
+            achieved = self.data.geom_xpos[self._cube_id].copy().astype(np.float32)
             return {
                 'observation': obs,
                 'achieved_goal': achieved,
@@ -41,7 +41,7 @@ def make_goal_env(xml=None, render_mode="human"):
         def step(self, action):
             obs, _, done, truncated, info = super().step(action)
             reward = self.compute_reward(
-                self.data.geom_xpos[self._obj_id], self.goal, info
+                self.data.geom_xpos[self._cube_id], self.goal, info
             )
             return self._get_obs_dict(), reward, done, truncated, info
 

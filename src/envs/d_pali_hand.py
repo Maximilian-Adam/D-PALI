@@ -4,7 +4,7 @@ import mujoco
 from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium import spaces
 
-ASSETS = Path(__file__).resolve().parent.parent / "assets" / "mjcf"
+ASSETS = Path(__file__).resolve().parents[2] / "assets" / "mjcf"
 
 class DPALI_Hand(MujocoEnv):
     metadata = {"render_modes": ["human", "rgb_array"],
@@ -39,13 +39,6 @@ class DPALI_Hand(MujocoEnv):
             self.sim.forward()  # Apply manual qpos changes
             return obs, {}
 
-
-        # cache the geom ID of "object0" for our reward
-        self._obj_id = mujoco.mj_name2id(
-            self.model,
-            mujoco.mjtObj.mjOBJ_GEOM,
-            b"object0",       
-        )  # returns -1 if the geom isn’t present
 
         # cache the End Effectors geom ID for our reward
         self._end_effector_id = [
