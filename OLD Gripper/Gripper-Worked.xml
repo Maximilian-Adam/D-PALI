@@ -20,7 +20,7 @@
                 <body name="robot0:Long_Link_L" pos="0.0405 0 0" quat="0.49692 0 0 -0.867796">
                     <inertial pos="0.0735453 -0.00874881 5.23989e-10" quat="0.088758 0.701514 -0.088758 0.701514" mass="0.0133897" diaginertia="2.01078e-05 1.97593e-05 6.86317e-07" />
                     <joint name="robot0:Elbow_Joint_L" class="elbow" axis="0 0 1" range="-0.6 2"/>
-                    <geom name="Long_Link_L" class="longlink" rgba="1 0.6 0.15 0.1" mesh="Long_Link_L" />
+                    <geom name="Long_Link_L" class="longlink" rgba="1 0.6 0.15 1" mesh="Long_Link_L" />
 
                     <!--End effector-->
                     <site name="Tip_L" pos="0.1135 -0.024 0" rgba="0 1 1 1" size="0.001" />
@@ -58,7 +58,7 @@
                 <body name="robot0:Long_Link_R" pos="0.0405 0 0" quat="0.49692 0 0 -0.867796">
                     <inertial pos="0.0735453 -0.00874881 5.23989e-10" quat="0.088758 0.701514 -0.088758 0.701514" mass="0.0133897" diaginertia="2.01078e-05 1.97593e-05 6.86317e-07" />
                     <joint name="robot0:Elbow_Joint_R" class="elbow" axis="0 0 1" range="-0.6 2"/>
-                    <geom name="Long_Link_R" class="longlink" rgba="1 0.6 0.15 0.1" mesh="Long_Link_R" />
+                    <geom name="Long_Link_R" class="longlink" rgba="1 0.6 0.15 1" mesh="Long_Link_R" />
 
                     <!--End effector-->
                     <site name="Tip_R" pos="0.1135 -0.024 0" rgba="0 1 1 1" size="0.001" />
