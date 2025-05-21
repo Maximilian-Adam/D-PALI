@@ -26,7 +26,7 @@ class DPALI_Hand(MujocoEnv):
         )
 
         # real spaces
-        self.action_space = spaces.Box(-1.0, 1.0, shape=(self.model.nu,),
+        self.action_space = spaces.Box(-1, 1, shape=(self.model.nu,),
                                        dtype=np.float32)
         obs_dim = self._get_obs().size
         self.observation_space = spaces.Box(-np.inf, np.inf,
@@ -73,7 +73,8 @@ class DPALI_Hand(MujocoEnv):
         return obs.astype(np.float32)          # cast to match space
 
     def step(self, action):
-        self.do_simulation(action, self.frame_skip)
+        scaled_action = action * np.pi/3
+        self.do_simulation(scaled_action, self.frame_skip)
         obs = self._get_obs()
         reward, terminated = self._compute_reward()
         info = {}
@@ -163,8 +164,6 @@ class DPALI_Hand(MujocoEnv):
     
 
     # ---------- debug ----------
-    def print_obs_dim(self):
-        print(f"Observation space dimension: {self.observation_space.shape}")
     def print_End_Effector_pos(self):
         print(f"End Effector position: {self._get_all_End_Effector_pos()}")
     def print_cube_pos(self):

@@ -1,0 +1,72 @@
+DPALI3D
+
+Lines 1 - 16 is all compiler stuff, with the descriptions being in the code.
+
+Line 19 and 23 import the other 2 xmls, importing is the same as writing all the code in the other xmls in dpali3D, the files are just split for organisation purposes.
+
+------------------------------------------------
+
+
+Shared3D
+
+Line 2 is more compiler stuff, line 6 sets the visuals of the world, Lines 12->19 define textures that will be used on the floor (e.gthe checker pattern on the floor in Mujoco is defined on line 15)
+
+Lines 24->32 import all the stl files to be used as meshes in Mujoco.
+
+Next we start to define classes which will be assigned to objects later on. The exact details are described in the code, but the most important part is contype and conaffinity, as these variables are used to determine whether 2 objects collide, with this formula being true describing whether or not objects collide: (contype1 & conaffinity2) || (contype2 & conaffinity1), which is why the visual class has both set to 0, so object in the visual class, like the circular base of the robot, do not collide with anything, as it is stationary, so the base having collisions would only slow the simulation down with no real benefit. The long link class is used in the long links for the 3 fingers, Hard_tip is the class used for the end effectors, object is the class used for the cube, and platform is used for the surface the cube falls on to. These classes are defined so that we can easily change what collides with what, for example, the cube collides with the platform, but the end effectors do not.
+
+Lines 65->76 defines the different joints to be used in building the robot in Gripper3D, by defining joint classes such as 'elbow' and 'Jxm330F', with the exact details being in the comments next to each joint.
+
+Lines 82->86 connect the long curved link and the front link of each finger, as they were not connected in the Gripper file due to how the kinematic tree works.
+
+Lastly, lines 88->101 define all the actuators in the robot, with the front and back ones being the two servos that control the linkages, and the base motor being the servos that move the fingers radially. Ctrlrange is the control range for each servo, current being -2*pi to 2*pi, kp and kv and constants used to tune the position and velocity controllers in the servos.
+
+------------------------------------------------(Back to DPALI3D)
+
+Line 21(of DPALI3D) The world body is then declared, with all subsequent bodies being in this world body
+
+Line 23 then imports the robot, which is in the Gripper3D file, and is described below
+
+------------------------------------------------(Now to Gripper3D)
+
+Gripper3D
+
+This whole file essentially builds the robot, starting from the main base and building from there until the end effectors. The way the kinematic tree works is you essentially keep attaching objects onto each other sequentially. In our case, first the main circular base is declared, then the finger base is attached to it, then the back link is attached to the base, then the short link is attached onto the back link, then the long curved link is attached onto the short link, then the end effector is attached onto the long link. Note that the front link is declared at the end of each fingers tree, which is why it needed to be connected separately in Shared3D with equality constraints.
+
+Note that what we see in Mujoco are not bodies, but rather 'geom' objects. Also not that the pos argument of a body is the coordinates of that body relative to its parent body, which is why, for example, all the end effectors have the same coordinates, even though they are in different positions in the simulations, as the coordinates defined in the code are in terms of the long link each end effector is connected to..
+
+common arguments:
+-name argument gives the bodies their name 
+-pos argument defines the position in 'X Y Z' 
+-euler argument defines rotations in the 'X Y Z' axis respectively
+-class argument uses the classes defined in Shared3D to work out collisions for the objects
+-rgba argument defines the colour and opacity of objects, with rgb being red, green, blue, scaling from 0->1 and a defines the opacity, with 0 being transparent, and 1 being opaque
+-mass argument assigns the mass to bodies, and currently most bodies have very small masses to ensure the actuators have no issues trying to move the fingers
+-diaginertia defines the diagonal inertia matrix of a body, currently we are using the same matrix as the previous guys files, as we don't fully understand how to define these matrixes, but essentially it is the same as F=ma, but in 3d, with F representing the torque, and the diaginertia matrix defining the acceleration in each of the xyz axes.
+-quat defines the inertial frame for an objects
+
+
+line 3 declares the base body which is what contains the whole robot, hence it being at the origin.
+Line 4 brings in the circular base, note that is uses the 'visual' class defined earlier, so it has no collisions
+
+Line 7->10 brings in the base mesh, which consists of the finer base, servos, and the gears all combined into a single mesh, as these would only add more useless collisions to the model if they were separate. The inertial argument defines the inertial frame for each object. Note that there's a joint on line 9 which is essentially a joint between the finger base and the main circular base, which uses the 'Jxm330H' joint class defined previously. This joint helps to realise the servo that moves the fingers radially round the base. 
+
+Lines 13->30 then adds on the other links in order until you reach the end effector. Note that every object before the long link has the 'visual' class, then long link has its own class 'longlink'. The end effector is defined using a 'geom' sphere on line 75, which has its own collision class 'Hard_tip' and it is this geom that is colliding with the cube in the simulations. The end effector also has this site called 'Tip-R' which is essentially a small dot at the centre of the end effector, and is what should be used to get the position of each end effector.
+
+Lines 81->86 adds on the front link which has a joint connecting it to the servo on the finger base model. It having this joint is the reason why it is connected to the long link with the equality constraint in Shared3D instead of a joint, as this is the only body that needs to have a 'joint' with another body besides its parent body.
+
+Subsequent lines do the same declaration for the remaining left and up fingers, with the code being almost identical, besides the names of links, and the position of the finger bases relative to the main base, so all 3 fingers start on the left, right, and up sides of the base, rather than all fingers being inside each other
+
+------------------------------------------------(Back to DPALI3D)
+
+Now that the robot has been defined, we then need to defined the platform and the cube
+
+Line 25 defines the platform which the cube can fall onto.
+
+Lines 26-28 define the cube according to the size' X Y Z' defined on line 28. Note that the cube is defined as having a joint  with the world body, but the type is set to 'free' on line 27 so the cube can move around the environment freely.
+
+Lines 30-32 define the arrow which is attached to the cube 'body' so it moves with the cube.
+
+Lines 34-37 define the sites on the cube, with COM_site being at the centre of the cube, and subsequent sites refer to the face the respective finger would hold the cube. In the default pose, these face sites are in roughly the same position as the sites in each of the end effectors
+
+Finally, line 40 just defines the lighting in the environment.
