@@ -27,9 +27,9 @@
         <mesh name="Long_Link" file="Long_Link.STL" />
 
         <!--Files for our new base and other new parts-->
-        <mesh name="Main_Base" file="../meshes/main_base.stl"/> <!--Big circular base-->
+        <mesh name="Main_Base" file="Main_Base.STL"/> <!--Big circular base-->
         <!--Bases that connect the 'fingers' to the main base-->
-        <mesh name="Finger_Base" file="../meshes/finger_base.stl"/>
+        <mesh name="Finger_Base" file="Finger_Base.STL"/>
 
     </asset>
 
@@ -91,8 +91,8 @@
         <position name="F1 Back" joint="Back_Joint_L"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
         <position name="F1 Base" joint="Base_L" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
-        <position name="F2 Front" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="F2 Back" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="F2 Front" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>  
+        <position name="F2 Back" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
         <position name="F2 Base" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
         <position name="F3 Front" joint="Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
