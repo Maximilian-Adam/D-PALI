@@ -40,13 +40,6 @@ class DPALI_Hand(MujocoEnv):
             return obs, {}
 
 
-        # cache the geom ID of "object0" for our reward
-        self._obj_id = mujoco.mj_name2id(
-            self.model,
-            mujoco.mjtObj.mjOBJ_GEOM,
-            b"object0",       
-        )  # returns -1 if the geom isn’t present
-
         # cache the End Effectors geom ID for our reward
         self._end_effector_id = [
             mujoco.mj_name2id(self.model,mujoco.mjtObj.mjOBJ_GEOM,b"Hard_tip_L"),
@@ -56,33 +49,52 @@ class DPALI_Hand(MujocoEnv):
         # cache the cube ID for our reward
         self._cube_id = mujoco.mj_name2id(
             self.model,
+            mujoco.mjtObj.mjOBJ_BODY,
+            b"object",       
+        )
+
+        self._cube_geom_id = mujoco.mj_name2id(
+            self.model,
             mujoco.mjtObj.mjOBJ_GEOM,
-            b"Cube",       
+            b"object",
+        )
+
+        self._target_id = mujoco.mj_name2id(
+            self.model,
+            mujoco.mjtObj.mjOBJ_BODY,
+            b"target",
         )
         
 
     # ---------- helpers ----------
     def _get_obs(self) -> np.ndarray:
-        obs = np.concatenate([self.data.qpos.ravel(),
+        obs = np.concatenate([self.data.qpos.ravel(), #Joint Positions and velocities
                               self.data.qvel.ravel()])
         return obs.astype(np.float32)          # cast to match space
 
     def step(self, action):
         self.do_simulation(action, self.frame_skip)
         obs = self._get_obs()
-        reward = self._compute_reward()
-        terminated = self._check_done()
+        reward, terminated = self._compute_reward()
         info = {}
         return obs, reward, terminated, False, info
 
     def reset_model(self):
         noise = self.np_random.uniform(-0.02, 0.02, size=self.model.nq)
         self.set_state(self.init_qpos + noise, self.init_qvel * 0)
-        cube_qpos_addr = self.model.body_jntadr[self._cube_id]  # index in qpos
-        cube_x = self.np_random.uniform(-0.2, 0.2)
-        cube_y = self.np_random.uniform(-0.3, 0.0)
-        cube_z = self.np_random.uniform(-0.2, 0.2)
-        self.data.qpos[cube_qpos_addr : cube_qpos_addr + 3] = np.array([cube_x, cube_y, cube_z])
+
+        cube_pos = np.array([0.0, -0.1345, 0.0]) #static cube position
+        self.model.body_pos[self._cube_id] = cube_pos
+        # cube_qpos_addr = self.model.body_jntadr[self._cube_id]  # index in cube pos
+        # self.data.qpos[cube_qpos_addr : cube_qpos_addr + 3] = cube_pos
+        
+        target_x = self.np_random.uniform(-0.04, 0.04)
+        target_y = self.np_random.uniform(0, 0.04) - 0.1345
+        target_z = self.np_random.uniform(-0.04, 0.04)
+        target_pos = np.array([target_x, target_y, target_z])
+
+        self.model.body_pos[self._target_id] = target_pos
+        
         return self._get_obs()
 
     # ---------- task-specific bits ----------
@@ -93,36 +105,61 @@ class DPALI_Hand(MujocoEnv):
         #print(f"End Effector position: {(Tip_L_pos, Tip_R_pos, Tip_U_pos)}")
         return np.array([Tip_L_pos, Tip_R_pos, Tip_U_pos], dtype=np.float32)
     
-    def _get_End_Effector_pos(self, tip_name)-> np.ndarray:
-        match tip_name:
-            case "L":
-                return self.data.geom_xpos[self._end_effector_id[0]]
-            case "R":
-                return self.data.geom_xpos[self._end_effector_id[1]]
-            case "U":
-                return self.data.geom_xpos[self._end_effector_id[2]]
-            case _:
-                raise ValueError(f"Unknown tip name: {tip_name}")
+    
     def _get_cube_pos(self)-> np.ndarray:
-        cube_pos = self.data.geom_xpos[self._cube_id]
+        cube_pos = self.data.xpos[self._cube_id]
         return cube_pos
     
+    def _get_target_pos(self)-> np.ndarray:
+        target_pos = self.data.xpos[self._target_id]
+        return target_pos
+    
+    def _check_contacts(self):
+        #Check if each end effector is in contact with the cube.
+        tip_contact = [False, False, False]  # L, R, U tips
+        
+        for i in range(self.data.ncon):
+            contact = self.data.contact[i]
+            
+            geom1_id = contact.geom1
+            geom2_id = contact.geom2
+            
+            for tip_idx, tip_id in enumerate(self._end_effector_id):
+                if (geom1_id == self._cube_geom_id and geom2_id == tip_id) or \
+                (geom2_id == self._cube_geom_id and geom1_id == tip_id):
+                    tip_contact[tip_idx] = True
+                    break
+        
+        return tip_contact
+    
     def _compute_reward(self):
-        # Should be customized for the training task
-        # here is the example of setting the reward to be the negitive distance
-        # between the end effector and the target
         End_Effector_pos = self._get_all_End_Effector_pos()
 
-        target  = self._get_cube_pos()
-        diff = -np.linalg.norm(End_Effector_pos[0] - target) 
-        diff -= np.linalg.norm(End_Effector_pos[1] - target) 
-        diff -= np.linalg.norm(End_Effector_pos[2] - target)
-        return diff
+        cube_pos = self._get_cube_pos()
+        target_pos  = self._get_target_pos()
+        dist_reward = -np.linalg.norm(cube_pos - target_pos)
 
-    def _check_done(self):
-        if self._compute_reward() > -0.001:
-            return True
-        return False
+        contacts = self._check_contacts()
+        contact_reward = sum(0.5 for contact in contacts if contact)
+        
+        # Additional reward for having multiple contacts (encourages grasping)
+        if sum(contacts) >= 2:
+            contact_reward += 1.0
+        if sum(contacts) == 3:
+            contact_reward += 2.0
+        
+        total_reward = dist_reward + contact_reward
+        
+        done = False
+        # Add a large bonus when cube is very close to target while being grasped
+        if -dist_reward < 0.01:
+            done = True
+            if sum(contacts) >= 2:
+                total_reward += 5.0    
+        
+
+        return total_reward, done
+
     
 
     # ---------- debug ----------

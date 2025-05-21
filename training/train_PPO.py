@@ -20,11 +20,14 @@ policy_kwargs = dict(
 
 model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./training/logs/ppo_logs/",device="cuda", policy_kwargs=policy_kwargs)
 model.learn(total_timesteps=10000000)
-model.save("./training/checkpoints/ppo_DPALIHand-v0")
+model.save("./training/checkpoints/ppo_DPALIHand-v0.1")
 
+# model = PPO.load("./training/checkpoints/ppo_DPALIHand-v0.1", env=env)
+# model.learn(total_timesteps=10000000)
+# model.save("./training/checkpoints/ppo_DPALIHand-v0.1")
 # *********************TESTING*********************
 obs, _ = env.reset()
-model = PPO.load("./training/checkpoints/ppo_DPALIHand-v0", env=env)
+model = PPO.load("./training/checkpoints/ppo_DPALIHand-v0.1", env=env)
 for _ in range(100000):
     action, _ = model.predict(obs)
     obs, reward, terminated, truncated, info = env.step(action)
