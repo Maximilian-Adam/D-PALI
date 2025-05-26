@@ -1,6 +1,23 @@
+<!--NOTES ON COMMON XML REFERENCES
+    geom:
+        - contype and conafinity are related to collision 'layers' between objects
+        - type is the relative geometry of the shape
+        - group is an integer group that the object belongs too (for inertia and mass stuff)
+        - Priority is for collision and contact stuff too
+        - solref and solimp are constraint solver parameters for contact simulation (see solvers)
+        - condim is the dimensions of contact (when two object come into contact, this is relevant) (will be 3 for all our cases)
+        - read collision and contact chapters of the compuation section of documentation for more info 
+
+    joint:
+        - type defines the joint (free, ball, slide or hinge)
+        - armature is additional inertia generated via the use of geared rotors (basc makes simulation more accurate and stable)
+        - solreflimit is again a constraint solver parameter (see solvers)
+
+
+In general, for a better understanding of this, seems like the compuatation chapter would be a good read-->
+
 <mujoco>
-    <size njmax="500" nconmax="100" nuser_jnt="1" nuser_site="1" nuser_sensor="1" nuser_actuator="5"
-        nstack="600000"></size>
+    <size njmax="500" nconmax="100" nuser_jnt="1" nuser_site="1" nuser_sensor="1" nuser_actuator="5" nstack="600000"></size>
 
     <visual>
         <map fogstart="3" fogend="5" force="0.1"></map>
@@ -9,29 +26,25 @@
 
     <asset>
         <!-- this defines texture -> material -> model -->
-        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512"
-            height="512" />
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512" />
         <!-- plane texture -->
-        <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2"
-            width="512" height="512" mark="cross" markrgb=".8 .8 .8" />
+        <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" width="512" height="512" mark="cross" markrgb=".8 .8 .8" />
         <!-- material to be refered to in geoms -->
-        <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="100 100"
-            texuniform="true" />
+        <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="100 100" texuniform="true" />
 
         <!-- Mesh files to be called by geoms (in gripper-worked) -->
-        
-        <!--Linkages files-->
         <mesh name="Back_Link" file="Back_Link.STL" /> 
         <mesh name="Short_Link" file="Short_Link.STL" />
         <mesh name="Front_Link" file="Front_Link.STL" /> 
         <mesh name="Long_Link" file="Long_Link.STL" />
 
         <!--Files for our new base and other new parts-->
-        <mesh name="Main_Base" file="../meshes/main_base.stl"/> <!--Big circular base-->
+        <mesh name="Main_Base" file="Main_Base.STL"/> <!--Big circular base-->
         <!--Bases that connect the 'fingers' to the main base-->
-        <mesh name="Finger_Base" file="../meshes/finger_base.stl"/>
-
+        <mesh name="Finger_Base" file="Finger_Base.STL"/>
     </asset>
+
+
 
     <default><!-- All geoms/joints defined below are dummies, which can be called upon when making the actual model-->
 
@@ -41,10 +54,6 @@
         </default>
 
         <!-- Collisions class (dummy geoms) -->
-         <!--This expression must be true for objects to collide: (contype1 & conaffinity2) || (contype2 & conaffinity1)-->
-         <!-- If type and/or affinity values are changed, can AND the numbers manually to check for collisions -->
-         <!-- priority: geom with higher priority has its condim used for collisions, if they're the same the larger condim is used-->
-          <!--atm,longlink has no collisions with anything | long_link, hard_tip and object collide with each other, platform collides with object only -->
         <default class="collision">
             <default class="longlink">
                 <geom type="mesh"      contype="0" conaffinity="0"  group="1" priority="1"></geom>
@@ -60,46 +69,44 @@
             </default>
         </default>
 
-         <!-- (Dummy) Joints defined below-->
-          <!--armature mimics inertia associated with the motor, making it more realistic-->
-        <default class="elbow"><!--Joint between Long_Link and Short_link-->
+        <!-- (Dummy) Joints defined below-->
+        <default class="elbow">
             <joint type="hinge" damping="5.71287639e-02" armature="1.44810901e-09" solreflimit="1e-5"/>
         </default>
-        <default class="Jxm330H"><!--Joint between servo and Back_link-->
+        <default class="Jxm330H"><!--Probably wanna rename these to be more descriptive-->
             <joint type="hinge" damping="2.28616804e+00" armature="4.82599651e-02" />
         </default>
-        <default class="Jxm330F"><!--Joint between servo and Front_link-->
+        <default class="Jxm330F">
             <joint type="hinge" damping="2.99875446e+00" armature="7.70645609e-02" />
         </default>
-        <default class="JS"><!--Joint between Back_Link and Short_Link-->
+        <default class="JS">
             <joint type="hinge" damping="1.29884556e-02" armature="0.00000000e+00" solreflimit="1e-5"/>
+        </default>
+        <default class="CustomJoint">
+            <joint type="hinge" armature="0.2" damping="1.0" solreflimit="0.005 1" solimplimit="0.95 0.99 0.001"/>
         </default>
 
     </default>
 
-    
-
     <equality><!--Equality contraints (basc connects the front link and long (curved) link, since they're not connected in the kinematic tree)-->
-        <connect name="Connect_L" active="true" body1="Long_Link_L" body2="Front_Link_L" anchor="0.037 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
-        <connect name="Connect_R" active="true" body1="Long_Link_R" body2="Front_Link_R" anchor="0.037 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
-        <connect name="Connect_U" active="true" body1="Long_Link_U" body2="Front_Link_U" anchor="0.037 0 0" solref="1e-9" solimp="1e9 1e9 1e9" />
+        <connect name="Connect_L" active="true" body1="Long_Link_L" body2="Front_Link_L" anchor="0.0405 0 -0.005" solref="0.002 1" solimp="0.99 0.999 0.001" />
+        <connect name="Connect_R" active="true" body1="Long_Link_R" body2="Front_Link_R" anchor="0.0405 0 -0.005" solref="0.002 1" solimp="0.99 0.999 0.001" />
+        <connect name="Connect_U" active="true" body1="Long_Link_U" body2="Front_Link_U" anchor="0.0405 0 -0.005" solref="0.002 1" solimp="0.99 0.999 0.001" />
     </equality>
+
 
     <actuator><!--Sets up actuators. Back and front joint are for the linkages connecting to the servos. Base actuators are for moving the fingers radially around the base.
         I've used the same actuator for the base, but needs to be changed when we actually choose the actuator for the base-->
-        <position name="F1 Front" joint="Front_Joint_L" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="F1 Back" joint="Back_Joint_L"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="F1 Base" joint="Base_L" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="L Front" joint="Front_Joint_L" ctrlrange="-3.14 3.14" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
+        <position name="L Back" joint="Back_Joint_L"  ctrlrange="-3.14 3.14" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
+        <position name="L Base" joint="Base_L" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
-        <position name="F2 Front" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="F2 Back" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="F2 Base" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="R Front" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>  
+        <position name="R Back" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="R Base" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
-        <position name="F3 Front" joint="Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="F3 Back" joint="Back_Joint_U"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="F3 Base" joint="Base_U" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="U Front" joint="Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="U Back" joint="Back_Joint_U"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="U Base" joint="Base_U" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
     </actuator>
-
-
-
 </mujoco>
