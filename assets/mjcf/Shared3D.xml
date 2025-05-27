@@ -50,7 +50,7 @@
                 <geom type="mesh"      contype="0" conaffinity="0"  group="1" priority="1"></geom>
             </default>
             <default class="Hard_tip">
-                <geom type="cylinder"  contype="2" conaffinity="6"  group="1" condim="3"></geom>
+                <geom type="cylinder"  contype="2" conaffinity="14"  group="1" condim="3"></geom>
             </default>
             <default class="object">
                 <geom type="box"       contype="4" conaffinity="11" group="1" priority="1" solref="1e-4" solimp="1e3 1e3 1e3" condim="3"></geom>
