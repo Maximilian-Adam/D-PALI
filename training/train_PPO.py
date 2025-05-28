@@ -68,7 +68,7 @@ def testing():
 
 
 if __name__ == "__main__":
-    mode = "train"  # "train" or "test"
+    mode = "test"  # "train" or "test"
     _total_timesteps = 10000  # Adjust this value as needed
 
     if mode == "train":
