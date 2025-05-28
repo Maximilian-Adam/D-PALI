@@ -56,7 +56,6 @@
 
         <!-- Sets up target (shadow) cube-->
         <body name="target" pos="0.03 0 -0.14" euler="0 0 1.5708">
-            <joint name="joint:target" type="free" damping="0.01"/>
             <geom name="target" type="box" size=".015 .015 .015" rgba="0.8 0 0.8 0.2" group="1" condim="4" contype="0"
                   conaffinity="0"/>
             <body name="target_arrow_marker" pos="0 0 0.001">
