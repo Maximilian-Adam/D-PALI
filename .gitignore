@@ -9,3 +9,6 @@ MUJOCO_LOG.TXT
 models/
 **/__pycache__/
 **/.vscode/
+best_model/
+tensorboard_dpali/
+eval_logs/
