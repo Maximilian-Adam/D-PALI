@@ -72,7 +72,7 @@ def make_goal_env(xml: str = None, render_mode: str = None) -> gym.Env:
 
 if __name__ == '__main__':
 
-    vec_env = DummyVecEnv([lambda: make_goal_env(render_mode=None)])
+    vec_env = DummyVecEnv([lambda: make_goal_env(render_mode='human')])
     vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=True)
 
     model = SAC(

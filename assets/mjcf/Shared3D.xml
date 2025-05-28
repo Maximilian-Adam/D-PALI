@@ -21,16 +21,15 @@
         <!-- Mesh files to be called by geoms (in gripper-worked) -->
         
         <!--Linkages files-->
-        <mesh name="Back_Link" file="Back_Link.STL" /> 
-        <mesh name="Short_Link" file="Short_Link.STL" />
-        <mesh name="Front_Link" file="Front_Link.STL" /> 
-        <mesh name="Long_Link" file="Long_Link.STL" />
+        <mesh name="Back_Link" file="3Dmeshes/Back_Link.STL" /> 
+        <mesh name="Short_Link" file="3Dmeshes/Short_Link.STL" />
+        <mesh name="Front_Link" file="3Dmeshes/Front_Link.STL" /> 
+        <mesh name="Long_Link" file="3Dmeshes/Long_Link.STL" />
 
         <!--Files for our new base and other new parts-->
-        <mesh name="Main_Base" file="Main_Base.STL"/> <!--Big circular base-->
-        <mesh name="Main_Base" file="Main_Base.STL"/> <!--Big circular base-->
+        <mesh name="Main_Base" file="3Dmeshes/Main_Base.STL"/> <!--Big circular base-->
         <!--Bases that connect the 'fingers' to the main base-->
-        <mesh name="Finger_Base" file="Finger_Base.STL"/>
+        <mesh name="Finger_Base" file="3Dmeshes/Finger_Base.STL"/>
 
     </asset>
 
@@ -51,7 +50,6 @@
                 <geom type="mesh"      contype="0" conaffinity="0"  group="1" priority="1"></geom>
             </default>
             <default class="Hard_tip">
-                <geom type="cylinder"  contype="2" conaffinity="14"  group="1" condim="3"></geom>
                 <geom type="cylinder"  contype="2" conaffinity="14"  group="1" condim="3"></geom>
             </default>
             <default class="object">
@@ -79,9 +77,6 @@
         <default class="CustomJoint">
             <joint type="hinge" armature="0.2" damping="1.0" solreflimit="0.005 1" solimplimit="0.95 0.99 0.001"/>
         </default>
-        <default class="CustomJoint">
-            <joint type="hinge" armature="0.2" damping="1.0" solreflimit="0.005 1" solimplimit="0.95 0.99 0.001"/>
-        </default>
 
     </default>
 
@@ -97,17 +92,17 @@
 
     <actuator><!--Sets up actuators. Back and front joint are for the linkages connecting to the servos. Base actuators are for moving the fingers radially around the base.
         I've used the same actuator for the base, but needs to be changed when we actually choose the actuator for the base-->
-        <position name="F1 Front" joint="Front_Joint_L" ctrlrange="-3.14 3.14" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
-        <position name="F1 Back" joint="Back_Joint_L"  ctrlrange="-3.14 3.14" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
-        <position name="F1 Base" joint="Base_L" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="L Front" joint="Front_Joint_L" ctrlrange="-3.14 3.14" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
+        <position name="L Back" joint="Back_Joint_L"  ctrlrange="-3.14 3.14" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
+        <position name="L Base" joint="Base_L" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
-        <position name="F2 Front" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>  
-        <position name="F2 Back" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="F2 Base" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="R Front" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>  
+        <position name="R Back" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="R Base" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
-        <position name="F3 Front" joint="Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="F3 Back" joint="Back_Joint_U"  ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="F3 Base" joint="Base_U" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="U Front" joint="Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="U Back" joint="Back_Joint_U"  ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="U Base" joint="Base_U" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
     </actuator>
 
 
