@@ -90,8 +90,8 @@ class DPALI_Hand(MujocoEnv):
         # self.data.qpos[cube_qpos_addr : cube_qpos_addr + 3] = cube_pos
         
         target_x = self.np_random.uniform(-0.04, 0.04)
-        target_y = self.np_random.uniform(0, 0.04) - 0.1345
-        target_z = self.np_random.uniform(-0.04, 0.04)
+        target_y = self.np_random.uniform(-0.04, 0.04)
+        target_z = self.np_random.uniform(-0.14, -0.14)
         target_pos = np.array([target_x, target_y, target_z])
 
         self.model.body_pos[self._target_id] = target_pos
