@@ -1,57 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mujoco>
-    <!--Options stuff: angle unit, meshdir is the directory where the meshes are stored
-    -balanceinertia: set to true to adjust some matrices slightly when diag inertia matrix violets a contstraint
-    -discardvisual: true means that the compiler ignores model elementws which are purely visual and have no effect on physics
-    -autolimits: idk how to explain this ngl: https://mujoco.readthedocs.io/en/latest/XMLreference.html#compiler
-    -warmstart: enabled means the solver uses data from the previous time step to initialise 'iterative optmization' whatever that means
--->
-    <compiler angle="radian" 
+    <!--Options stuff (look into more)-->
+    <compiler angle="radian"
               meshdir="3Dmeshes"
               balanceinertia="true"
               discardvisual="false"
               autolimits="true"/>
-    <option solver="PGS" impratio="0.5" cone="elliptic" tolerance="1e-7" noslip_iterations="10000" timestep="0.002" gravity = "0 -9.81 0">
+    <option solver="PGS" impratio="0.5" cone="elliptic" tolerance="1e-7" noslip_iterations="10000" timestep="0.002" gravity = "0 0 -9.81">
         <flag warmstart="enable"/>
     </option>
 
 
-    <include file="Shared3D.xml"/>
+    <include file="shared3D.xml"/>
 
     <worldbody>
-        <!--This line adds the robot-->
-        <include file="Gripper3D.xml"/>
 
-        <geom name="floor" class="platform" pos="0 -0.160 0" euler="1.57 0 0" size="0.100 0.100 0.001" type="box" rgba="0 0 0 0.25" />
+      <body name="workspace" pos="0 0 0" euler="0 1.5708 0">    <!-- rotate 90° about Y -->
+            <body pos="0 0 0" euler="0 0 -1.5708">  <!-- then 90° about Z -->
+                <!--adds the floor and platform-->
+                
+                <geom name="floor" pos="0 0 -0.1" size="15 15 1" type="plane" material="matplane" margin="0.001" condim="3" friction="1 0.005 0.0001" />
+                <body name="floor" pos="0 0 -0.1"/>
 
-        <body name="object" pos="0 -0.1345 0">
-            <joint name="object_joint" type="free" damping="0.01"/>
-            <geom name="object" pos="0 0 0" size="0.014 0.014 0.014" rgba="0.5 0.5 0.5 0.9" mass="0.00001" class="object"/>
+                <!--white platform-->
+                <geom name="table" class="platform" type="box" size=".08 .08 .05" pos="0 0.15 -0.05" rgba="1.5 1.5 1.5 0.5"/> 
 
-            <!-- <body name="object_arrow" pos="0 0 0" euler="0 0 3.14">
-                <geom name="object_arrow" type="box" size=".002 .010 .015" rgba="1 0 0 0.75" class="visual" group="1"/>
-                <geom name="object_arrow2" type="box" pos="0.0036 0.0084 0.001" quat="1 0 0 0.5" size=".002 .006 .014" rgba="1 0 0 0.75" class="visual" group="1"/>
-                <geom name="object_arrow3" type="box" pos="-0.0036 0.0084 0.001" quat="1 0 0 -0.5" size=".002 .006 .014" rgba="1 0 0 0.75" class="visual" group="1"/>
-            </body> -->
+                <!--pink platform-->
+                <geom name="table2" class="platform" type="box" size=".08 .01 .05" pos="0 0.18 0.05" rgba="1.5 1 1.5 0.5"/>
 
-            <site name="object:COM_site" pos="0 0 0" rgba="1 1 0 1" size="0.003" />
-            <site name="object:site_L" pos="-0.021 0 0" rgba="0 1 1 1" size="0.003" />
-            <site name="object:site_R" pos=" 0.021 0 0" rgba="0 0 1 1" size="0.003" />
-            <site name="object:site_U" pos="0 0 0.021" rgba="0.5 0.5 0.5 1" size="0.003"/>
-        </body> 
+                <!--This line adds the robot-->
+                <include file="Gripper3D.xml"/>
+            </body>
+        </body>
 
-        <body name="target" pos="0.04 -0.1345 0">
-            <geom name="target" type="box" size="0.014 0.014 0.013" rgba="0.8 0 0.8 0.2" group="1" condim="4" contype="0"
-                  conaffinity="0"/>
-
-            <!-- <body name="target_arrow" pos="0 0 0" euler="0 0 3.14">
-                <geom name="target_arrow1" type="box" size=".002 .01 .015" rgba="0.5 0 0 0.75" class="visual"
+        <!--Sets up cube -->
+        <body name="object" pos="0.015 0 -0.15" euler="0 0 1.5708 ">
+            <joint name="object:joint" type="free" damping="0.01"/>
+            <geom name="object" class='object' size="0.015 0.015 0.015" rgba="0.125 0.785 0.785 0.5" />
+            <geom name="object_arrow" type="box" size=".002 .012 .016" rgba="1 0 0 1" class="visual"
                       group="1"/>
-                <geom name="target_arrow2" type="box" pos="0.0036 0.0084 0" quat="1 0 0 0.5" size=".002 .006 .014"
+            <geom name="object_arrow2" type="box" pos="0.0036 0.0084 0.001" quat="1 0 0 0.5" size=".002 .006 .015"
+                      rgba="1 0 0 1" class="visual" group="1"/>
+            <geom name="object_arrow3" type="box" pos="-0.0036 0.0084 0.001" quat="1 0 0 -0.5" size=".002 .006 .015"
+                      rgba="1 0 0 1" class="visual" group="1"/>
+
+            <site name="object:site" pos="0 0 0" rgba="1 1 0 1" size="0.005" />
+            <site name="object:site_L" pos="-0.028 0 0" rgba="0 1 1 1" size="0.003" />
+            <site name="object:site_R" pos=" 0.028 0 0" rgba="0 0 1 1" size="0.003" />
+		</body>
+
+
+        <!-- Sets up target (shadow) cube-->
+        <body name="target" pos="0.015 -0.04 -0.155" euler="0 0 1.5708 ">
+            <!-- <joint name="target:joint" type="free" damping="0.01"/> -->
+            <geom name="target" type="box" size="0.015 0.015 0.015" rgba="0.8 0 0.8 0.2" group="1" condim="4" contype="0"
+                  conaffinity="0"/>
+            <body name="target:arrow_marker" pos="0 0 0.001">
+                <geom name="target_arrow" type="box" size=".002 .012 .016" rgba="0.5 0 0 1" class="visual"
+                      group="1"/>
+                <geom name="target_arrow2" type="box" pos="0.0036 0.0084 0.001" quat="1 0 0 0.5" size=".002 .006 .015"
                       rgba="0.5 0 0 1" class="visual" group="1"/>
-                <geom name="target_arrow3" type="box" pos="-0.0036 0.0084 0" quat="1 0 0 -0.5" size=".002 .006 .014"
+                <geom name="target_arrow3" type="box" pos="-0.0036 0.0084 0.001" quat="1 0 0 -0.5" size=".002 .006 .015"
                       rgba="0.5 0 0 1" class="visual" group="1"/>
-            </body> -->
+            </body>
         </body>
 
         <light directional="true" diffuse="0.3 0.3 0.3" specular="0.3 0.3 0.3" castshadow="true" pos="0.1 0.1 0.1"

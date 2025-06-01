@@ -17,7 +17,7 @@ def setup(mode="test"):
 
 
 # *********************TRAINING*********************
-def training(_total_timesteps):
+def training(_total_timesteps,file_path):
     env = setup("train")
     policy_kwargs = dict(
         net_arch=[dict(pi=[128, 128,64,32], vf=[256, 256, 128, 64])],
@@ -34,7 +34,7 @@ def training(_total_timesteps):
                 policy_kwargs=policy_kwargs)
     print('*************Training started*************')
     model.learn(total_timesteps=_total_timesteps)
-    model.save("./training/checkpoints/ppo_DPALIHand-v0")
+    model.save(file_path)
     env.close()
     print('*************Training finished*************')
 
@@ -42,20 +42,24 @@ def training(_total_timesteps):
 # model.learn(total_timesteps=10000000)
 # model.save("./training/checkpoints/ppo_DPALIHand-v0.1")
 # *********************TESTING*********************
-def testing():
+def testing(file_path):
     env = setup("test")
     obs, _ = env.reset()
-    model = PPO.load("./training/checkpoints/ppo_DPALIHand-v0", env=env)
-    for _ in range(100000):
+    model = PPO.load(file_path, env=env)
+    i = 0
+    while True:
         action, _ = model.predict(obs)
         obs, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
         print(f"Reward: {reward}, Done: {done}")
         env.render()
-        if done:
+        if done or i == 1000:
             print('Done')
             time.sleep(1/2)
             obs, _ = env.reset()
+            i = 0
+            print('Resetting environment')
+        else: i += 1
     try:
         while True:
             env.render()
@@ -69,12 +73,13 @@ def testing():
 
 if __name__ == "__main__":
     mode = "test"  # "train" or "test"
-    _total_timesteps = 1000000  # Adjust this value as needed
+    _total_timesteps = 5000000  # Adjust this value as needed
+    file_path = "./training/checkpoints/ppo_DPALIHand-v1.0"
 
     if mode == "train":
-        training(_total_timesteps)
+        training(_total_timesteps,file_path)
     elif mode == "test":
-        testing()
+        testing(file_path)
     else:
         print("Invalid mode. Use 'train' or 'test'.")
         exit(1)

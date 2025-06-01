@@ -1,0 +1,5 @@
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+D-Pali_venv/scripts/activate
+
+tensorboard --logdir ./training/logs/ppo_logs/  (for PPO)
+tensorboard --logdir ./training/logs/td3_tensorboard/  (for TD3)

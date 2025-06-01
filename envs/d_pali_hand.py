@@ -8,163 +8,232 @@ ASSETS = Path(__file__).resolve().parent.parent / "assets" / "mjcf"
 
 class DPALI_Hand(MujocoEnv):
     metadata = {"render_modes": ["human", "rgb_array"],
-                "render_fps":     100}
+                "render_fps": 100}
 
     def __init__(self, xml: str | None = None, 
                  frame_skip: int = 5,
-                 render_mode: str | None = "human"):
+                 render_mode: str | None = "human",
+                 max_episode_steps: int = 500):
 
         xml_path = ASSETS / (xml or "DPALI3D.xml")
 
+        calculated_fps = 1 / (frame_skip * 0.002)
+
+        self.metadata = {
+            "render_modes": ["human", "rgb_array"],
+            "render_fps": calculated_fps
+        }
+        
+        
         super().__init__(
             str(xml_path),        
             frame_skip,
             observation_space=None, 
             render_mode=render_mode,
-            width = 1920,
-            height = 1080,
+            width=1920,
+            height=1080,
         )
 
-        # real spaces
-        self.action_space = spaces.Box(-1, 1, shape=(self.model.nu,),
-                                       dtype=np.float32)
-        obs_dim = self._get_obs().size
-        self.observation_space = spaces.Box(-np.inf, np.inf,
-                                            shape=(obs_dim,),
-                                            dtype=np.float32)
-
-        def reset(self, *, seed=None, options=None):
-            super().reset(seed=seed)
-            obs = self.reset_model()
-            self.sim.forward()  # Apply manual qpos changes
-            return obs, {}
-
-
-        # cache the End Effectors geom ID for our reward
-        self._end_effector_id = [
-            mujoco.mj_name2id(self.model,mujoco.mjtObj.mjOBJ_GEOM,b"Hard_tip_L"),
-            mujoco.mj_name2id(self.model,mujoco.mjtObj.mjOBJ_GEOM,b"Hard_tip_R"),
-            mujoco.mj_name2id(self.model,mujoco.mjtObj.mjOBJ_GEOM,b"Hard_tip_U"),
-        ]
-        # cache the cube ID for our reward
-        self._cube_id = mujoco.mj_name2id(
-            self.model,
-            mujoco.mjtObj.mjOBJ_BODY,
-            b"object",       
-        )
-
-        self._cube_geom_id = mujoco.mj_name2id(
-            self.model,
-            mujoco.mjtObj.mjOBJ_GEOM,
-            b"object",
-        )
-
-        self._target_id = mujoco.mj_name2id(
-            self.model,
-            mujoco.mjtObj.mjOBJ_BODY,
-            b"target",
-        )
         
 
-    # ---------- helpers ----------
+        # Cache the End Effectors geom ID for our reward
+        self._end_effector_id = [
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"Hard_tip_L"),
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"Hard_tip_R"),
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"Hard_tip_U"),
+        ]
+        
+        # Cache the cube ID for our reward
+        self._cube_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, b"object")
+        self._cube_geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"object")
+        self._target_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, b"target")
+        
+        # Fixed target position
+        self._target_pos = np.array([0.015, 0.0, -0.155])
+        self._cube_initial_pos = np.array([0.015, 0, -0.15])
+        
+        # Episode management
+        self.max_episode_steps = max_episode_steps
+        self.current_step = 0
+
+        # Set up action and observation spaces after initialization
+        self.action_space = spaces.Box(-1, 1, shape=(self.model.nu,), dtype=np.float32)
+        obs_dim = self._get_obs().size
+        self.observation_space = spaces.Box(-np.inf, np.inf, shape=(obs_dim,), dtype=np.float32)
+
+    # FIXED: Properly indented reset method
+    def reset(self, *, seed=None, options=None):
+        super().reset(seed=seed)
+        self.current_step = 0  # Reset step counter
+        obs = self.reset_model()
+        return obs, {}
+
     def _get_obs(self) -> np.ndarray:
-        obs = np.concatenate([self.data.qpos.ravel(), #Joint Positions and velocities
-                              self.data.qvel.ravel()])
-        return obs.astype(np.float32)          # cast to match space
+        # Enhanced observation including task-relevant information
+        joint_pos = self.data.qpos.ravel()
+        joint_vel = self.data.qvel.ravel()
+        
+        # Get end effector positions
+        ee_positions = self._get_all_End_Effector_pos().ravel()
+        
+        # Get cube and target positions
+        cube_pos = self._get_cube_pos()
+        target_pos = self._get_target_pos()
+        
+        # Get contact information
+        contacts = np.array(self._check_contacts(), dtype=np.float32)
+        
+        # Relative positions (cube to target, end effectors to cube)
+        cube_to_target = target_pos - cube_pos
+        ee_to_cube = []
+        for ee_pos in self._get_all_End_Effector_pos():
+            ee_to_cube.extend(cube_pos - ee_pos)
+        
+        obs = np.concatenate([
+            joint_pos,
+            joint_vel,
+            ee_positions,
+            cube_pos,
+            target_pos,
+            cube_to_target,
+            ee_to_cube,
+            contacts
+        ])
+        
+        return obs.astype(np.float32)
 
     def step(self, action):
+        self.current_step += 1
         scaled_action = action * np.pi/3
         self.do_simulation(scaled_action, self.frame_skip)
         obs = self._get_obs()
         reward, terminated = self._compute_reward()
-        info = {}
-        return obs, reward, terminated, False, info
+        
+        # Check for episode timeout
+        truncated = self.current_step >= self.max_episode_steps
+        
+        info = self._get_info()
+        return obs, reward, terminated, truncated, info
 
     def reset_model(self):
+        # Add noise to initial joint positions
         noise = self.np_random.uniform(-0.02, 0.02, size=self.model.nq)
         self.set_state(self.init_qpos + noise, self.init_qvel * 0)
 
-        cube_pos = np.array([0.0, -0.1345, 0.0]) #static cube position
-        self.model.body_pos[self._cube_id] = cube_pos
-        # cube_qpos_addr = self.model.body_jntadr[self._cube_id]  # index in cube pos
-        # self.data.qpos[cube_qpos_addr : cube_qpos_addr + 3] = cube_pos
+        # Set cube to fixed initial position
+        cube_jnt_addr = self.model.body_jntadr[self._cube_id]
+        if cube_jnt_addr >= 0:  # Check if the body has joints
+            self.data.qpos[cube_jnt_addr:cube_jnt_addr + 3] = self._cube_initial_pos
         
-        target_x = self.np_random.uniform(-0.04, 0.04)
-        target_y = self.np_random.uniform(0, 0.04) - 0.1345
-        target_z = self.np_random.uniform(-0.04, 0.04)
-        target_pos = np.array([target_x, target_y, target_z])
+        target_y = self.np_random.uniform(-0.04, 0.04)
+        target_pos = np.array([0.015, target_y, -0.155])
 
         self.model.body_pos[self._target_id] = target_pos
         
+        # Forward the simulation to apply changes
+        mujoco.mj_forward(self.model, self.data)
+        
         return self._get_obs()
 
-    # ---------- task-specific bits ----------
-    def _get_all_End_Effector_pos(self)-> np.ndarray:
+    def _get_all_End_Effector_pos(self) -> np.ndarray:
         Tip_L_pos = self.data.geom_xpos[self._end_effector_id[0]]
         Tip_R_pos = self.data.geom_xpos[self._end_effector_id[1]]
         Tip_U_pos = self.data.geom_xpos[self._end_effector_id[2]]
-        #print(f"End Effector position: {(Tip_L_pos, Tip_R_pos, Tip_U_pos)}")
         return np.array([Tip_L_pos, Tip_R_pos, Tip_U_pos], dtype=np.float32)
     
+    def _get_cube_pos(self) -> np.ndarray:
+        return self.data.xpos[self._cube_id].copy()
     
-    def _get_cube_pos(self)-> np.ndarray:
-        cube_pos = self.data.xpos[self._cube_id]
-        return cube_pos
-    
-    def _get_target_pos(self)-> np.ndarray:
-        target_pos = self.data.xpos[self._target_id]
-        return target_pos
+    def _get_target_pos(self) -> np.ndarray:
+        return self.data.xpos[self._target_id].copy()
     
     def _check_contacts(self):
-        #Check if each end effector is in contact with the cube.
+        """Check if each end effector is in contact with the cube."""
         tip_contact = [False, False, False]  # L, R, U tips
         
         for i in range(self.data.ncon):
             contact = self.data.contact[i]
-            
             geom1_id = contact.geom1
             geom2_id = contact.geom2
             
             for tip_idx, tip_id in enumerate(self._end_effector_id):
-                if (geom1_id == self._cube_geom_id and geom2_id == tip_id) or \
-                (geom2_id == self._cube_geom_id and geom1_id == tip_id):
+                if ((geom1_id == self._cube_geom_id and geom2_id == tip_id) or 
+                    (geom2_id == self._cube_geom_id and geom1_id == tip_id)):
                     tip_contact[tip_idx] = True
                     break
         
         return tip_contact
     
     def _compute_reward(self):
-        End_Effector_pos = self._get_all_End_Effector_pos()
-
+        """Improved reward function with dense rewards."""
+        end_effector_pos = self._get_all_End_Effector_pos()
         cube_pos = self._get_cube_pos()
-        target_pos  = self._get_target_pos()
-        dist_reward = -np.linalg.norm(cube_pos - target_pos)
-
+        target_pos = self._get_target_pos()
         contacts = self._check_contacts()
-        contact_reward = sum(0.5 for contact in contacts if contact)
         
-        # Additional reward for having multiple contacts (encourages grasping)
-        if sum(contacts) >= 2:
-            contact_reward += 1.0
-        if sum(contacts) == 3:
-            contact_reward += 2.0
+        # Distance from cube to target
+        cube_target_dist = np.linalg.norm(cube_pos - target_pos)
         
-        total_reward = dist_reward + contact_reward
+        # Distance from end effectors to cube (encourage approach)
+        ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
+        min_ee_cube_dist = min(ee_cube_distances)
+        avg_ee_cube_dist = np.mean(ee_cube_distances)
         
-        done = False
-        # Add a large bonus when cube is very close to target while being grasped
-        if -dist_reward < 0.01:
-            done = True
-            if sum(contacts) >= 2:
-                total_reward += 5.0    
+        # Contact rewards
+        num_contacts = sum(contacts)
         
-
-        return total_reward, done
-
+        # Reward components
+        reward = 0.0
+        
+        # Dense reward for approaching cube
+        approach_reward = -avg_ee_cube_dist * 10.0
+        
+        # Large bonus for contacts
+        contact_reward = num_contacts * 2.0
+        
+        # Dense reward for moving cube toward target (only when grasping)
+        if num_contacts == 3:  # Need at least 2 contacts for stable grasp
+            cube_target_reward = -cube_target_dist * 20.0
+        else:
+            cube_target_reward = -cube_target_dist * 5.0
+        
+        # Success bonus
+        success_bonus = 0.0
+        terminated = False
+        if cube_target_dist < 0.01 and num_contacts >= 2:
+            success_bonus = 100.0
+            terminated = True
+        
+        # Small penalty for time to encourage efficiency
+        time_penalty = -0.1
+        
+        # Total reward
+        reward = approach_reward + contact_reward + cube_target_reward + success_bonus + time_penalty
+        
+        return reward, terminated
     
+    def _get_info(self):
+        """Return diagnostic information."""
+        contacts = self._check_contacts()
+        cube_pos = self._get_cube_pos()
+        target_pos = self._get_target_pos()
+        
+        return {
+            'cube_target_distance': np.linalg.norm(cube_pos - target_pos),
+            'num_contacts': sum(contacts),
+            'contacts': contacts,
+            'cube_position': cube_pos,
+            'target_position': target_pos,
+            'episode_step': self.current_step,
+            'max_episode_steps': self.max_episode_steps
+        }
 
-    # ---------- debug ----------
+    # Debug methods
     def print_End_Effector_pos(self):
         print(f"End Effector position: {self._get_all_End_Effector_pos()}")
+        
     def print_cube_pos(self):
         print(f"Cube position: {self._get_cube_pos()}")
+        
+    def print_target_pos(self):
+        print(f"Target position: {self._get_target_pos()}")
