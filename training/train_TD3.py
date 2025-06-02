@@ -15,10 +15,17 @@ import numpy as np
 
 warnings.simplefilter("error", GLFWError)
 
+global_eval_freq = 50000
+global_max_episode_steps = 500
+global_save_freq = 50000
+global_reward_threshold = 5000.0
+
+
+
 def setup(mode="test", log_dir=None, max_episode_steps=500):
     """Set up the environment with optional monitoring."""
     _render_mode = "human" if mode == "test" else None
-    frame_skip = 5 if mode == "test" else 10  # Double frame skip for training
+    frame_skip = 5 if mode == "test" else 20  # Double frame skip for training
     env = gym.make("DPALIHand-v0", 
                    render_mode=_render_mode, 
                    max_episode_steps=max_episode_steps,
@@ -30,17 +37,17 @@ def setup(mode="test", log_dir=None, max_episode_steps=500):
     obs, _ = env.reset()
     return env
 
-def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_freq=100000):
+def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_freq = global_eval_freq):
     """Train using TD3 algorithm - excellent for continuous control tasks."""
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     os.makedirs(log_dir, exist_ok=True)
     
     # Create training environment
-    env = setup("train", log_dir + "monitor/", max_episode_steps=500)
-    
+    env = setup("train", log_dir + "monitor/", max_episode_steps = global_max_episode_steps)
+
     # Create evaluation environment (separate from training)
-    eval_env = setup("train", max_episode_steps=500)
-    
+    eval_env = setup("train", max_episode_steps = global_max_episode_steps)
+
     # Add action noise for better exploration during training
     # TD3 uses noise for exploration - this is crucial for learning
     n_actions = env.action_space.shape[0]
@@ -77,7 +84,7 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
     # Callbacks for training
     # Stop training if we achieve good performance
     stop_callback = StopTrainingOnRewardThreshold(
-        reward_threshold=95.0, 
+        reward_threshold = global_reward_threshold, 
         verbose=1
     )
     
@@ -96,7 +103,7 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
     
     # Save checkpoints during training
     checkpoint_callback = CheckpointCallback(
-        save_freq=50000,
+        save_freq = global_save_freq,
         save_path=os.path.dirname(file_path) + "/checkpoints/",
         name_prefix="td3_checkpoint"
     )
@@ -138,19 +145,19 @@ def continue_training_td3(model_path, total_timesteps, save_path, log_dir="./tra
     os.makedirs(log_dir, exist_ok=True)
     
     # Set up environments
-    env = setup("train", log_dir + "monitor/", max_episode_steps=500)
-    eval_env = setup("train", max_episode_steps=500)
+    env = setup("train", log_dir + "monitor/", max_episode_steps = global_max_episode_steps)
+    eval_env = setup("train", max_episode_steps = global_max_episode_steps)
     
     # Load the saved model
     model = TD3.load(model_path, env=env)
     
     # Set up callbacks
-    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=2500.0, verbose=1)
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold = global_reward_threshold, verbose=1)
     eval_callback = EvalCallback(
         eval_env,
         best_model_save_path=os.path.dirname(save_path) + "/best_model/",
         log_path=log_dir + "eval_logs/",
-        eval_freq=100000,
+        eval_freq = global_eval_freq,
         n_eval_episodes=10,
         deterministic=True,
         render=False,
@@ -159,7 +166,7 @@ def continue_training_td3(model_path, total_timesteps, save_path, log_dir="./tra
     )
     
     checkpoint_callback = CheckpointCallback(
-        save_freq=50000,
+        save_freq = global_save_freq,
         save_path=os.path.dirname(save_path) + "/checkpoints/",
         name_prefix="td3_checkpoint_continued"
     )
@@ -284,8 +291,8 @@ if __name__ == "__main__":
     mode = "test"  # "train", "test", "continue", or "hypersearch"
     
     # Configuration
-    total_timesteps = 125000 
-    file_path = "./training/checkpoints/td3_DPALIHand-v0.2"
+    total_timesteps = 100000 
+    file_path = "./training/checkpoints/td3_DPALIHand-v3.0"
     
     if mode == "train":
         training_td3(total_timesteps, file_path)
@@ -295,9 +302,9 @@ if __name__ == "__main__":
         
     elif mode == "continue":
         # Continue training from existing model
-        existing_model = "./training/checkpoints/td3_DPALIHand-v0.1"
-        new_save_path = "./training/checkpoints/td3_DPALIHand-v0.2"
-        continue_training_td3(existing_model, 125000, new_save_path)
+        existing_model = "./training/checkpoints/checkpoints/td3_checkpoint_50000_steps.zip"
+        new_save_path = "./training/checkpoints/td3_DPALIHand-v1.0"
+        continue_training_td3(existing_model, 450000, new_save_path)
         
     elif mode == "hypersearch":
         hyperparameter_search()

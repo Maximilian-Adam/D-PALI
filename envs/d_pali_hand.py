@@ -171,44 +171,62 @@ class DPALI_Hand(MujocoEnv):
         target_pos = self._get_target_pos()
         contacts = self._check_contacts()
         
-        # Distance from cube to target
-        cube_target_dist = np.linalg.norm(cube_pos - target_pos)
-        
-        # Distance from end effectors to cube (encourage approach)
+        # === PHASE 1: APPROACH PHASE ===
+        # Encourage gripper to approach cube
         ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
-        min_ee_cube_dist = min(ee_cube_distances)
         avg_ee_cube_dist = np.mean(ee_cube_distances)
         
-        # Contact rewards
+        # Dense approach reward (decreases as gripper gets closer)
+        approach_reward = -avg_ee_cube_dist * 5.0
+        
+        # === PHASE 2: CONTACT PHASE ===
         num_contacts = sum(contacts)
         
-        # Reward components
-        reward = 0.0
+        # Progressive contact rewards - encourage all 3 contacts
+        if num_contacts == 0:
+            contact_reward = 0.0
+        elif num_contacts == 1:
+            contact_reward = 10.0  # First contact bonus
+        elif num_contacts == 2:
+            contact_reward = 25.0  # Two-finger grasp bonus
+        elif num_contacts == 3:
+            contact_reward = 50.0  # Perfect three-finger grasp bonus
         
-        # Dense reward for approaching cube
-        approach_reward = -avg_ee_cube_dist * 10.0
+        # === PHASE 3: MANIPULATION PHASE ===
+        cube_target_dist = np.linalg.norm(cube_pos - target_pos)
         
-        # Large bonus for contacts
-        contact_reward = num_contacts * 2.0
+        manipulation_reward = -cube_target_dist * 100.0
+
+        # Different strategies based on grasp quality
+        if num_contacts >= 2:  # Good grasp - focus on moving to target
+            # Bonus for maintaining grasp while moving
+            grasp_maintenance_bonus = 20.0 if num_contacts == 3 else 10.0
+        else:  # Poor grasp - still encourage target movement but less
+            grasp_maintenance_bonus = 0.0
         
-        # Dense reward for moving cube toward target (only when grasping)
-        if num_contacts == 3:  # Need at least 2 contacts for stable grasp
-            cube_target_reward = -cube_target_dist * 20.0
-        else:
-            cube_target_reward = -cube_target_dist * 5.0
-        
-        # Success bonus
+        # === PHASE 4: SUCCESS PHASE ===
         success_bonus = 0.0
         terminated = False
-        if cube_target_dist < 0.01 and num_contacts >= 2:
-            success_bonus = 100.0
-            terminated = True
         
-        # Small penalty for time to encourage efficiency
-        time_penalty = -0.1
+        # Success criteria: cube very close to target with stable grasp
+        if cube_target_dist < 0.002 and num_contacts >= 2:
+            success_bonus = 500.0
+            terminated = True
+        elif cube_target_dist < 0.005 and num_contacts >= 2:
+            # Close to success bonus
+            success_bonus = 50.0
+        
+        # === PENALTIES ===
+        # Time penalty to encourage efficiency
+        time_penalty = -0.5
         
         # Total reward
-        reward = approach_reward + contact_reward + cube_target_reward + success_bonus + time_penalty
+        reward = (approach_reward + 
+                  contact_reward + 
+                  manipulation_reward +
+                  grasp_maintenance_bonus + 
+                  success_bonus + 
+                  time_penalty)
         
         return reward, terminated
     
