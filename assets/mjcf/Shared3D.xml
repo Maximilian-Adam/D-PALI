@@ -97,16 +97,15 @@ In general, for a better understanding of this, seems like the compuatation chap
 
     <actuator><!--Sets up actuators. Back and front joint are for the linkages connecting to the servos. Base actuators are for moving the fingers radially around the base.
         I've used the same actuator for the base, but needs to be changed when we actually choose the actuator for the base-->
-        <position name="L Front" joint="Front_Joint_L" ctrlrange="-3.14 3.14" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
-        <position name="L Back" joint="Back_Joint_L"  ctrlrange="-3.14 3.14" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
-        <position name="L Base" joint="Base_L" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="L Front" joint="Front_Joint_L" ctrlrange="-3.14 3.14" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
+        <position name="L Back" joint="Back_Joint_L"  ctrlrange="-3.14 3.14" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
+        <position name="L Base" joint="Base_L" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
-        <position name="R Front" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>  
-        <position name="R Back" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="R Base" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="R Front" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>  
+        <position name="R Back" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="R Base" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
-        <position name="U Front" joint="Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="U Back" joint="Back_Joint_U"  ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="U Base" joint="Base_U" ctrlrange="-3.1415 3.1415" kp="2.74329889e+01" kv="2.74329889e+01" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-    </actuator>
+        <position name="U Front" joint="Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="U Back" joint="Back_Joint_U"  ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="U Base" joint="Base_U" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>    </actuator>
 </mujoco>
