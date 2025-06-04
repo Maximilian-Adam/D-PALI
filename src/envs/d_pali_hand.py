@@ -4,7 +4,7 @@ import mujoco
 from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium import spaces
 
-ASSETS = Path(__file__).resolve().parent.parent / "assets" / "mjcf"
+ASSETS = Path(__file__).resolve().parent.parent.parent / "assets" / "mjcf"
 
 class DPALI_Hand(MujocoEnv):
     metadata = {"render_modes": ["human", "rgb_array"],
