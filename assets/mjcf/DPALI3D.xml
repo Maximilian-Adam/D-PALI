@@ -2,7 +2,7 @@
 <mujoco>
     <!--Options stuff (look into more)-->
     <compiler angle="radian"
-              meshdir="3Dmeshes"
+              meshdir="../meshes"
               balanceinertia="true"
               discardvisual="false"
               autolimits="true"/>
