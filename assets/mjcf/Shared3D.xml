@@ -59,7 +59,7 @@ In general, for a better understanding of this, seems like the compuatation chap
                 <geom type="mesh"      contype="0" conaffinity="0"  group="1" priority="1"></geom>
             </default>
             <default class="Hard_tip">
-                <geom type="cylinder"  contype="2" conaffinity="6"  group="1" condim="3"></geom>
+                <geom type="cylinder"  contype="2" conaffinity="14"  group="1" condim="3"></geom>
             </default>
             <default class="object">
                 <geom type="box"       contype="4" conaffinity="11" group="1" priority="1" solref="1e-4" solimp="1e3 1e3 1e3" condim="3"></geom>
@@ -85,6 +85,9 @@ In general, for a better understanding of this, seems like the compuatation chap
         <default class="CustomJoint">
             <joint type="hinge" armature="0.2" damping="1.0" solreflimit="0.005 1" solimplimit="0.95 0.99 0.001"/>
         </default>
+        <default class="CustomJoint">
+            <joint type="hinge" armature="0.2" damping="1.0" solreflimit="0.005 1" solimplimit="0.95 0.99 0.001"/>
+        </default>
 
     </default>
 
@@ -100,7 +103,13 @@ In general, for a better understanding of this, seems like the compuatation chap
         <position name="L Front" joint="Front_Joint_L" ctrlrange="-3.14 3.14" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
         <position name="L Back" joint="Back_Joint_L"  ctrlrange="-3.14 3.14" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
         <position name="L Base" joint="Base_L" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="L Front" joint="Front_Joint_L" ctrlrange="-3.14 3.14" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
+        <position name="L Back" joint="Back_Joint_L"  ctrlrange="-3.14 3.14" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00" ctrllimited="true"/>
+        <position name="L Base" joint="Base_L" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
 
+        <position name="R Front" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>  
+        <position name="R Back" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
+        <position name="R Base" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
         <position name="R Front" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>  
         <position name="R Back" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
         <position name="R Base" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>

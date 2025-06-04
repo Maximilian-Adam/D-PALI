@@ -26,9 +26,7 @@ def make_goal_env(xml: str = None, render_mode: str = None) -> gym.Env:
     class DPALI_GoalEnv(DPALI_Hand, GoalEnv):
         def __init__(self, **kwargs):
             super().__init__(xml=xml, **kwargs)
-            # Desired goal is the target position in 3D
             self.goal = np.array([0.1, 0.0, 0.15], dtype=np.float32)
-            # Observation space becomes a Dict space
             obs_dim = self._get_obs().shape[0]
             self.observation_space = spaces.Dict({
                 'observation': spaces.Box(-np.inf, np.inf, shape=(obs_dim,), dtype=np.float32),
@@ -40,18 +38,13 @@ def make_goal_env(xml: str = None, render_mode: str = None) -> gym.Env:
                            achieved_goal: np.ndarray,
                            desired_goal: np.ndarray,
                            info) -> np.ndarray:
-            """
-            Compute a per-sample Euclidean reward.
-            If inputs are shape (3,), returns a scalar; if (N,3), returns shape (N,).
-            """
+   
             diff = achieved_goal - desired_goal
-            # axis=-1 handles both (3,) -> scalar and (N,3) -> (N,)
             reward = -np.linalg.norm(diff, axis=-1)
             return reward.astype(np.float32)
 
         def _get_obs_dict(self) -> dict:
             obs = self._get_obs()
-            # achieved goal: position of object0 fetched via Mujoco data
             geom_id = self._obj_id
             achieved = self.data.geom_xpos[geom_id].copy().astype(np.float32)
             return {'observation': obs, 'achieved_goal': achieved, 'desired_goal': self.goal}
