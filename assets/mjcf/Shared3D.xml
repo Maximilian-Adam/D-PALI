@@ -21,15 +21,15 @@
         <!-- Mesh files to be called by geoms (in gripper-worked) -->
         
         <!--Linkages files-->
-        <mesh name="Back_Link" file="Back_Link.STL" /> 
-        <mesh name="Short_Link" file="Short_Link.STL" />
-        <mesh name="Front_Link" file="Front_Link.STL" /> 
-        <mesh name="Long_Link" file="Long_Link.STL" />
+        <mesh name="Back_Link" file="Back_Link.stl" /> 
+        <mesh name="Short_Link" file="Short_Link.stl" />
+        <mesh name="Front_Link" file="Front_Link.stl" /> 
+        <mesh name="Long_Link" file="Long_Link.stl" />
 
         <!--Files for our new base and other new parts-->
-        <mesh name="Main_Base" file="Main_Base.STL"/> <!--Big circular base-->
+        <mesh name="Main_Base" file="Main_Base.stl"/> <!--Big circular base-->
         <!--Bases that connect the 'fingers' to the main base-->
-        <mesh name="Finger_Base" file="Finger_Base.STL"/>
+        <mesh name="Finger_Base" file="Finger_Base.stl"/>
 
     </asset>
 
