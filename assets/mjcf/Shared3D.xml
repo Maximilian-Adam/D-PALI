@@ -65,7 +65,7 @@ In general, for a better understanding of this, seems like the compuatation chap
                 <geom type="box"       contype="4" conaffinity="11" group="1" priority="1" solref="1e-4" solimp="1e3 1e3 1e3" condim="3"></geom>
             </default>
             <default class="platform">
-                <geom                  contype="8" conaffinity="4"  group="1" mass="1e3" condim="3"></geom>
+                <geom                  contype="2" conaffinity="4"  group="1" mass="1e3" condim="3"></geom>
             </default>
         </default>
 

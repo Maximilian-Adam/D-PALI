@@ -6,8 +6,8 @@
        <!--Finger 1 (Left)-->
        <body name="Base_L" pos="-0.04250 0 0" euler="0 0 0">
             <inertial pos="0 0 0" euler="0 0 0" mass="0.001" diaginertia="9.37005e-04 8.15608e-04 4.73725e-04" />
-            <joint name="Base_L" pos="0.060 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
-            <geom name="Base_L" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" /> <!--Finger base-->
+            <joint name="Base_L" pos="0.04250 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
+            <geom name="Base_L" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" contype="16" conaffinity="16"/> <!--Finger base-->
             
             <!--Back link-->
             <body name="Back_Link_L" pos="-0.0625 0.005 0" euler="0 0 1.75">
@@ -49,8 +49,8 @@
         <!--Finger 2 (Right)-->
        <body name="Base_R" pos="0.04250 0 0" euler="3.14 0 3.14">
             <inertial pos="0 0 0" euler="0 0 0" mass="0.001" diaginertia="9.37005e-04 8.15608e-04 4.73725e-04" />
-            <joint name="Base_R" pos="0.060 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
-            <geom name="Base_R" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" /> <!--Finger base-->
+            <joint name="Base_R" pos="0.04250 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
+            <geom name="Base_R" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" contype="16" conaffinity="16"/> <!--Finger base-->
             
             <!--Back link-->
             <body name="Back_Link_R" pos="-0.0625 0.005 0" euler="0 0 1.75">
@@ -92,8 +92,8 @@
         <!--Finger 3 (Up)-->
        <body name="Base_U" pos="0 0 0.04250" euler="-1.57 1.57 1.57">
             <inertial pos="0 0 0" euler="0 0 0" mass="0.001" diaginertia="9.37005e-04 8.15608e-04 4.73725e-04" />
-            <joint name="Base_U" pos="0.060 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
-            <geom name="Base_U" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" /> <!--Finger base-->
+            <joint name="Base_U" pos="0.04250 0 0" class="Jxm330H" axis="0 1 0" range="-3.1415 3.1415"/>
+            <geom name="Base_U" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" contype="16" conaffinity="16"/> <!--Finger base-->
             
             <!--Back link-->
             <body name="Back_Link_U" pos="-0.0625 0.005 0" euler="0 0 1.75">
