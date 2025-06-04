@@ -25,16 +25,22 @@ Repo For D-Pali Project
   python scripts/test2.py
   ```
   
-## PPO training
-The first stage is to train the gripper to catch the cube. The reward function is set to sum of the distance from all end effectors and the cube. 
-### How to run PPO training
-- turn on tensorboard monitoring
-```bash
-pip install tensorboard
-tensorboard --version
-tensorboard --logdir=training/logs/ppo_logs/
-```
-- run training script: make sure you are in the root dir of this repo
-```bash
-python3 ./training/train_PPO.py
-```
+## TD3 Training:
+### Modes
+The TD3 training has 3 main modes, training, testing and continuation. They can be selected via the main call at the bottom of the script. There you can also adjust the filepath for the model, and the total timesteps for training (with the exception of continuation).
+
+Continuation has it's own variables for old and new filepath, and extra steps to train.
+
+### Variables
+There's a few key variables at the top of the file too:
+- global_eval_freq - This defines how often (in steps) the model is evaluated (for a new best model to be saved)
+- global_max_episode_steps - The number of steps the enviroment can take before the model is reset
+- global_save_freq - This defines how often (in steps) the model will save mid-training checkpoints
+- global_reward_threshold - This is how high the average reward must be (during an eval) for the training to end early (set very high to ensure all timesteps are trained, reccomended on first runs. Or set to a reasonable value for your reward function to save early and save time)
+
+### Performance
+The script is setup to automatically detect a GPU or CPU config, however there are some variables you may want to experiment with to get the best performance out of your system:
+- Batch size
+- frame_skip
+- train_freq and gradient_steps
+- For maximum performance, you may also want to experiment with multiple enviroments learning on the same model, however that isn't covered here (yet)
