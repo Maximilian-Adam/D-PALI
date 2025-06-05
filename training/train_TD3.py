@@ -288,7 +288,7 @@ def hyperparameter_search():
         )
 
 if __name__ == "__main__":
-    mode = "test"  # "train", "test", "continue", or "hypersearch"
+    mode = "train"  # "train", "test", "continue", or "hypersearch"
     
     # Configuration
     total_timesteps = 500000 

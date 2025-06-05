@@ -7,12 +7,16 @@ name = "d_pali_hand_rl"
 version = "0.1.0"
 description = "Gymnasium environment for the DPALI dexterous hand"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "gymnasium",
     "mujoco",
     "numpy"
 ]
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["envs*"]
