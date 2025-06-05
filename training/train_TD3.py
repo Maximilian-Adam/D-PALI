@@ -15,10 +15,10 @@ import numpy as np
 
 warnings.simplefilter("error", GLFWError)
 
-global_eval_freq = 50000
+global_eval_freq = 100000
 global_max_episode_steps = 500
-global_save_freq = 50000
-global_reward_threshold = 5000.0
+global_save_freq = 100000
+global_reward_threshold = 7500.0
 
 
 
@@ -183,7 +183,7 @@ def continue_training_td3(model_path, total_timesteps, save_path, log_dir="./tra
     eval_env.close()
     print('*************Training continuation finished*************')
 
-def testing_td3(file_path, num_episodes=10, max_episode_steps=500):
+def testing_td3(file_path, num_episodes=10, max_episode_steps = global_max_episode_steps):
     """Test a trained TD3 model."""
     env = setup("test", max_episode_steps=max_episode_steps)
     
@@ -291,8 +291,8 @@ if __name__ == "__main__":
     mode = "test"  # "train", "test", "continue", or "hypersearch"
     
     # Configuration
-    total_timesteps = 100000 
-    file_path = "./training/checkpoints/td3_DPALIHand-v3.0"
+    total_timesteps = 500000 
+    file_path = "./training/checkpoints/TD3/td3_DPALIHand-v5.0"
     
     if mode == "train":
         training_td3(total_timesteps, file_path)
@@ -302,9 +302,9 @@ if __name__ == "__main__":
         
     elif mode == "continue":
         # Continue training from existing model
-        existing_model = "./training/checkpoints/checkpoints/td3_checkpoint_50000_steps.zip"
-        new_save_path = "./training/checkpoints/td3_DPALIHand-v1.0"
-        continue_training_td3(existing_model, 450000, new_save_path)
+        existing_model = "./training/checkpoints/TD3/td3_DPALIHand-v4.0"
+        new_save_path = "./training/checkpoints/TD3/td3_DPALIHand-v4.1"
+        continue_training_td3(existing_model, 400000, new_save_path)
         
     elif mode == "hypersearch":
         hyperparameter_search()

@@ -50,7 +50,7 @@ class DPALI_Hand(MujocoEnv):
         
         # Fixed target position
         self._target_pos = np.array([0.015, 0.0, -0.155])
-        self._cube_initial_pos = np.array([0.015, 0, -0.15])
+        self._cube_initial_pos = np.array([0.0195, 0, -0.14])
         
         # Episode management
         self.max_episode_steps = max_episode_steps
@@ -79,7 +79,11 @@ class DPALI_Hand(MujocoEnv):
         # Get cube and target positions
         cube_pos = self._get_cube_pos()
         target_pos = self._get_target_pos()
-        
+
+        # Get cube and target orientations
+        cube_ori = self._get_cube_orientation()
+        target_ori = self._get_target_orientation()
+
         # Get contact information
         contacts = np.array(self._check_contacts(), dtype=np.float32)
         
@@ -88,6 +92,8 @@ class DPALI_Hand(MujocoEnv):
         ee_to_cube = []
         for ee_pos in self._get_all_End_Effector_pos():
             ee_to_cube.extend(cube_pos - ee_pos)
+
+        cube_to_target_ori = target_ori - cube_ori
         
         obs = np.concatenate([
             joint_pos,
@@ -97,7 +103,10 @@ class DPALI_Hand(MujocoEnv):
             target_pos,
             cube_to_target,
             ee_to_cube,
-            contacts
+            contacts,
+            cube_ori,
+            target_ori,
+            cube_to_target_ori
         ])
         
         return obs.astype(np.float32)
@@ -125,8 +134,8 @@ class DPALI_Hand(MujocoEnv):
         if cube_jnt_addr >= 0:  # Check if the body has joints
             self.data.qpos[cube_jnt_addr:cube_jnt_addr + 3] = self._cube_initial_pos
         
-        target_y = self.np_random.uniform(-0.04, 0.04)
-        target_pos = np.array([0.015, target_y, -0.155])
+        # target_y = self.np_random.uniform(-0.04, 0.04)
+        target_pos = np.array([0.0195, -0.04, -0.14])
 
         self.model.body_pos[self._target_id] = target_pos
         
@@ -147,6 +156,12 @@ class DPALI_Hand(MujocoEnv):
     def _get_target_pos(self) -> np.ndarray:
         return self.data.xpos[self._target_id].copy()
     
+    def _get_cube_orientation(self) -> np.ndarray:
+        return self.data.xquat[self._cube_id].copy()
+    
+    def _get_target_orientation(self) -> np.ndarray:
+        return self.data.xquat[self._target_id].copy()
+
     def _check_contacts(self):
         """Check if each end effector is in contact with the cube."""
         tip_contact = [False, False, False]  # L, R, U tips
@@ -171,62 +186,65 @@ class DPALI_Hand(MujocoEnv):
         target_pos = self._get_target_pos()
         contacts = self._check_contacts()
         
-        # === PHASE 1: APPROACH PHASE ===
-        # Encourage gripper to approach cube
-        ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
-        avg_ee_cube_dist = np.mean(ee_cube_distances)
+        # # === PHASE 1: APPROACH PHASE ===
+        # # Encourage gripper to approach cube
+        # ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
+        # avg_ee_cube_dist = np.mean(ee_cube_distances)
         
-        # Dense approach reward (decreases as gripper gets closer)
-        approach_reward = -avg_ee_cube_dist * 5.0
+        # # Dense approach reward (decreases as gripper gets closer)
+        # approach_reward = -avg_ee_cube_dist * 5.0
         
-        # === PHASE 2: CONTACT PHASE ===
-        num_contacts = sum(contacts)
+        # # === PHASE 2: CONTACT PHASE ===
+        # num_contacts = sum(contacts)
         
-        # Progressive contact rewards - encourage all 3 contacts
-        if num_contacts == 0:
-            contact_reward = 0.0
-        elif num_contacts == 1:
-            contact_reward = 10.0  # First contact bonus
-        elif num_contacts == 2:
-            contact_reward = 25.0  # Two-finger grasp bonus
-        elif num_contacts == 3:
-            contact_reward = 50.0  # Perfect three-finger grasp bonus
+        # # Progressive contact rewards - encourage all 3 contacts
+        # if num_contacts == 0:
+        #     contact_reward = 0.0
+        # elif num_contacts == 1:
+        #     contact_reward = 20.0  # First contact bonus
+        # elif num_contacts == 2:
+        #     contact_reward = 50.0  # Two-finger grasp bonus
+        # elif num_contacts == 3:
+        #     contact_reward = 100.0  # Perfect three-finger grasp bonus
         
-        # === PHASE 3: MANIPULATION PHASE ===
-        cube_target_dist = np.linalg.norm(cube_pos - target_pos)
+        # # === PHASE 3: MANIPULATION PHASE ===
+        # cube_target_dist = np.linalg.norm(cube_pos - target_pos)
         
-        manipulation_reward = -cube_target_dist * 100.0
+        # manipulation_reward = -cube_target_dist * 100.0
+        
+        # # === PHASE 4: SUCCESS PHASE ===
+        # success_bonus = 0.0
+        # terminated = False
+        
+        # # Success criteria: cube very close to target with stable grasp
+        # if cube_target_dist < 0.002 and num_contacts >= 2:
+        #     success_bonus = 500.0
+        #     terminated = True
+        # elif cube_target_dist < 0.005 and num_contacts >= 2:
+        #     # Close to success bonus
+        #     success_bonus = 50.0
+        
+        # # === PENALTIES ===
+        # # Time penalty to encourage efficiency
+        # time_penalty = -0.5
+        
+        # # Total reward
+        # reward = (approach_reward + 
+        #           contact_reward + 
+        #           manipulation_reward +
+        #           success_bonus + 
+        #           time_penalty)
 
-        # Different strategies based on grasp quality
-        if num_contacts >= 2:  # Good grasp - focus on moving to target
-            # Bonus for maintaining grasp while moving
-            grasp_maintenance_bonus = 20.0 if num_contacts == 3 else 10.0
-        else:  # Poor grasp - still encourage target movement but less
-            grasp_maintenance_bonus = 0.0
-        
-        # === PHASE 4: SUCCESS PHASE ===
-        success_bonus = 0.0
-        terminated = False
-        
-        # Success criteria: cube very close to target with stable grasp
-        if cube_target_dist < 0.002 and num_contacts >= 2:
-            success_bonus = 500.0
-            terminated = True
-        elif cube_target_dist < 0.005 and num_contacts >= 2:
-            # Close to success bonus
+        ###OLD REWARD FUNCTION###
+        cube_target_dist = np.linalg.norm(cube_pos - target_pos)
+        if cube_target_dist < 0.002 and sum(contacts) ==3:
             success_bonus = 50.0
-        
-        # === PENALTIES ===
-        # Time penalty to encourage efficiency
-        time_penalty = -0.5
-        
-        # Total reward
-        reward = (approach_reward + 
-                  contact_reward + 
-                  manipulation_reward +
-                  grasp_maintenance_bonus + 
-                  success_bonus + 
-                  time_penalty)
+            terminated = True
+        else: 
+            success_bonus = 0.0
+            terminated = False
+
+        reward = -cube_target_dist - (3-sum(contacts)) * 0.05 + success_bonus
         
         return reward, terminated
     
