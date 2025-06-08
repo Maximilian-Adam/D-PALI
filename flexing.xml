@@ -1,0 +1,18 @@
+<mujoco>
+<default>
+  <default class="flex">
+    <geom type="sphere" size="0.004" rgba="0.125 0.785 0.785 1" mass="0.00001"/>
+    <joint type="ball" damping="0.01"/>
+  </default>
+</default>
+
+<composite name="Soft_tip_U"
+           class="flex"
+           type="grid"
+           count="3 3 3"
+           spacing="0.0066"
+           offset="0 0 0"
+           mesh="false"
+           skin="false"
+           pos="0 0 0"/>
+</mujoco>

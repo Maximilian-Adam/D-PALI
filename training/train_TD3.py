@@ -291,7 +291,7 @@ if __name__ == "__main__":
     mode = "train"  # "train", "test", "continue", or "hypersearch"
     
     # Configuration
-    total_timesteps = 100000 
+    total_timesteps = 10000000 
     file_path = "./training/checkpoints/td3_DPALIHand-v3.0"
     
     if mode == "train":

@@ -11,7 +11,7 @@
     </option>
 
 
-    <include file="Shared3D.xml"/>
+    <include file="Shared3D-2.xml"/>
 
     <worldbody>
 
@@ -26,17 +26,17 @@
                 <!--<geom name="table" class="platform" type="box" size=".08 .08 .05" pos="0 0.15 -0.05" rgba="1.5 1.5 1.5 0.5"/> -->
 
                 <!--pink platform-->
-                <geom name="table2" class="platform" type="box" size=".08 .01 .1" pos="0 0.18 0.0" rgba="1.5 1 1.5 0.5"/>
+                <geom name="table2" class="platform" type="box" size=".08 .01 .1" pos="0 0.18 0.0" rgba="1.5 1 1.5 0.5" friction="1 0.005 0.0001"/>
 
                 <!--This line adds the robot-->
-                <include file="Gripper3D.xml"/>
+                <include file="Gripper3D-2.xml"/>
             </body>
         </body>
 
         <!--Sets up cube -->
         <body name="object" pos="0.015 0 -0.15" euler="0 0 1.5708 ">
             <joint name="object:joint" type="free" damping="0.01"/>
-            <geom name="object" class='object' size="0.015 0.015 0.015" rgba="0.125 0.785 0.785 0.5" />
+            <geom name="object" class='object' size="0.015 0.015 0.015" rgba="0.125 0.785 0.785 0.5" mass="0.02774" />
             <geom name="object_arrow" type="box" size=".002 .012 .016" rgba="1 0 0 1" class="visual"
                       group="1"/>
             <geom name="object_arrow2" type="box" pos="0.0036 0.0084 0.001" quat="1 0 0 0.5" size=".002 .006 .015"
@@ -49,6 +49,12 @@
             <site name="object:site_R" pos=" 0.028 0 0" rgba="0 0 1 1" size="0.003" />
 		</body>
 
+        <!--
+        <body name="ref" pos="0.115 0.002 -0.004" euler="0 0.3 1.5708 ">
+            <joint name="ref:joint" type="free" damping="0.01"/>
+            <geom name="ref" class='object' size="0.0115 0.015 0.015" rgba="1 0.785 0.785 0.5" />
+		</body>
+-->
 
         <!-- Sets up target (shadow) cube-->
         <body name="target" pos="0.015 -0.04 -0.155" euler="0 0 1.5708 ">
