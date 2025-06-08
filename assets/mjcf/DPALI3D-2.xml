@@ -11,7 +11,7 @@
     </option>
 
 
-    <include file="Shared3D.xml"/>
+    <include file="Shared3D-2.xml"/>
 
     <worldbody>
 
@@ -29,7 +29,7 @@
                 <geom name="table2" class="platform" type="box" size=".08 .01 .1" pos="0 0.18 0.0" rgba="1.5 1 1.5 0.5" friction="1 0.005 0.0001"/>
 
                 <!--This line adds the robot-->
-                <include file="Gripper3D.xml"/>
+                <include file="Gripper3D-2.xml"/>
             </body>
         </body>
 

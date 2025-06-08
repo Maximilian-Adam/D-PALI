@@ -10,7 +10,7 @@
             <geom name="Base_L" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" contype="16" conaffinity="16"/> <!--Finger base-->
             
             <!--Back link-->
-            <body name="Back_Link_L" pos="-0.0625 0.005 0" euler="0 0 1.75">
+            <body name="Back_Link_L" pos="-0.0628 0.0072 0.002" euler="0 0 1.75">
                 <inertial pos="-0.000350268 0.0180111 -1.86653e-06" quat="0.999872 -8.5692e-05 -0.000105773 0.0159827" mass="0.001" diaginertia="9.37005e-07 8.15608e-07 4.73725e-07" />
                 <joint name="Back_Joint_L" class="CustomJoint" axis="0 0 1" range="-1 0.8"/>
                 <geom name="Back_Link_L" class="visual" rgba="1 0.6 0.15 1" mesh="Back_Link"/> 
@@ -38,7 +38,7 @@
             </body>
 
             <!--Front link (connected to long link in shared-worked)-->
-            <body name="Front_Link_L" pos="-0.0525 -0.0275 0" euler="0 0 2.25">
+            <body name="Front_Link_L" pos="-0.0525 -0.0261 0.002" euler="0 0 2.25">
                 <inertial pos="1.64302e-06 0.021826 0.000500228" quat="0.49924 0.500664 -0.499738 0.500357" mass="0.001" diaginertia="1.3181e-06 8.8333e-07 8.29623e-07" />
                 <joint name="Front_Joint_L" class="CustomJoint" type="hinge" axis="0 0 1" range="-0.7 0.3"/>
                 <geom name="Front_Link_L" class="visual" rgba="1 0.6 0.15 1" mesh="Front_Link" />
@@ -53,7 +53,7 @@
             <geom name="Base_R" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" contype="16" conaffinity="16"/> <!--Finger base-->
             
             <!--Back link-->
-            <body name="Back_Link_R" pos="-0.0625 0.005 0" euler="0 0 1.75">
+            <body name="Back_Link_R" pos="-0.0628 0.0072 0.002" euler="0 0 1.75">
                 <inertial pos="-0.000350268 0.0180111 -1.86653e-06" quat="0.999872 -8.5692e-05 -0.000105773 0.0159827" mass="0.001" diaginertia="9.37005e-07 8.15608e-07 4.73725e-07" />
                 <joint name="Back_Joint_R" class="CustomJoint" axis="0 0 1" range="-1 0.8"/>
                 <geom name="Back_Link_R" class="visual" rgba="1 0.6 0.15 1" mesh="Back_Link"/> 
@@ -81,7 +81,7 @@
             </body>
 
             <!--Front link (connected to long link in shared-worked)-->
-            <body name="Front_Link_R" pos="-0.0525 -0.0275 0" euler="0 0 2.25">
+            <body name="Front_Link_R" pos="-0.0525 -0.0261 0.002" euler="0 0 2.25">
                 <inertial pos="1.64302e-06 0.021826 0.000500228" quat="0.49924 0.500664 -0.499738 0.500357" mass="0.001" diaginertia="1.3181e-06 8.8333e-07 8.29623e-07" />
                 <joint name="Front_Joint_R" class="CustomJoint" type="hinge" axis="0 0 1" range="-0.7 0.3"/>
                 <geom name="Front_Link_R" class="visual" rgba="1 0.6 0.15 1" mesh="Front_Link" />
@@ -96,7 +96,7 @@
             <geom name="Base_U" class="visual" rgba="1 0.6 0.15 1" mesh="Finger_Base" contype="16" conaffinity="16"/> <!--Finger base-->
             
             <!--Back link-->
-            <body name="Back_Link_U" pos="-0.0625 0.005 0" euler="0 0 1.75">
+            <body name="Back_Link_U" pos="-0.0628 0.0072 0.002" euler="0 0 1.75">
                 <inertial pos="-0.000350268 0.0180111 -1.86653e-06" quat="0.999872 -8.5692e-05 -0.000105773 0.0159827" mass="0.001" diaginertia="9.37005e-07 8.15608e-07 4.73725e-07" />
                 <joint name="Back_Joint_U" class="CustomJoint" axis="0 0 1" range="-1 0.8"/>
                 <geom name="Back_Link_U" class="visual" rgba="1 0.6 0.15 1" mesh="Back_Link"/> 
@@ -124,7 +124,7 @@
             </body>
 
             <!--Front link (connected to long link in shared-worked)-->
-            <body name="Front_Link_U" pos="-0.0525 -0.0275 0" euler="0 0 2.25">
+            <body name="Front_Link_U" pos="-0.0525 -0.0261 0.002" euler="0 0 2.25">
                 <inertial pos="1.64302e-06 0.021826 0.000500228" quat="0.49924 0.500664 -0.499738 0.500357" mass="0.001" diaginertia="1.3181e-06 8.8333e-07 8.29623e-07" />
                 <joint name="Front_Joint_U" class="CustomJoint" type="hinge" axis="0 0 1" range="-0.7 0.3"/>
                 <geom name="Front_Link_U" class="visual" rgba="1 0.6 0.15 1" mesh="Front_Link" />
