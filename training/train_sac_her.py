@@ -72,7 +72,7 @@ def make_goal_env(xml: str = None, render_mode: str = None) -> gym.Env:
 
 if __name__ == '__main__':
 
-    vec_env = DummyVecEnv([lambda: make_goal_env(render_mode='human')])
+    vec_env = DummyVecEnv([lambda: make_goal_env(render_mode=None)])
     vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=True)
 
     model = SAC(
@@ -110,6 +110,7 @@ if __name__ == '__main__':
     )
 
     total_timesteps = 1_000_000
+    model.load('best_model/best_model.zip', env=vec_env, reset_num_timesteps=False)
     model.learn(total_timesteps=total_timesteps, callback=eval_callback)
 
     model.save('models/sac_her_dpali_hand_V0.1')
