@@ -37,7 +37,7 @@ def setup(mode="test", log_dir=None, max_episode_steps=500):
     obs, _ = env.reset()
     return env
 
-def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_freq = global_eval_freq):
+def training_td3( total_timesteps, file_path, log_dir="./training/logs/", eval_freq = global_eval_freq, policy_args=None):
     """Train using TD3 algorithm - excellent for continuous control tasks."""
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     os.makedirs(log_dir, exist_ok=True)
@@ -56,6 +56,19 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
         sigma=0.1 * np.ones(n_actions)
     )
     
+    if policy_args is not None:
+        # Use custom policy arguments if provided
+        _policy_kwargs = policy_args
+    else:
+        # Default policy arguments for TD3
+        _policy_kwargs = dict(
+            net_arch=dict(
+                pi=[512, 512, 256],  # actor 
+                qf=[256, 256]  # critic 
+            ),
+            activation_fn=torch.nn.ReLU
+        )
+
     # TD3 hyperparameters optimized for manipulation tasks
     model = TD3(
         "MlpPolicy",
@@ -63,19 +76,16 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
         learning_rate=1e-3,           # Learning rate - can be higher for TD3
         buffer_size=1000000,          # Large replay buffer for better sample efficiency  
         learning_starts=10000,        # Start learning after collecting some experience
-        batch_size=2048,               # Batch size for training
+        batch_size=2048,              # Batch size for training
         tau=0.005,                    # Soft update coefficient for target networks
         gamma=0.99,                   # Discount factor
         train_freq=(4, "step"),       # Train after every 4 steps
-        gradient_steps=4,           # Do as many gradient steps as environment steps
+        gradient_steps=4,             # Do as many gradient steps as environment steps
         action_noise=action_noise,    # Exploration noise
         policy_delay=2,               # Delay policy updates (key TD3 feature)
         target_policy_noise=0.2,      # Noise added to target policy
         target_noise_clip=0.5,        # Clip target noise
-        policy_kwargs=dict(
-            net_arch=[512, 512, 256],      # Network architecture [actor, critic]
-            activation_fn=torch.nn.ReLU
-        ),
+        policy_kwargs=_policy_kwargs,
         verbose=1,
         tensorboard_log=log_dir + "td3_tensorboard/",
         device="cuda" if torch.cuda.is_available() else "cpu"
