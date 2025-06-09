@@ -43,7 +43,6 @@ In general, for a better understanding of this, seems like the compuatation chap
         <!--Bases that connect the 'fingers' to the main base-->
         <mesh name="Finger_Base" file="Finger_Base.stl"/>
     </asset>
-    
 
 
 
