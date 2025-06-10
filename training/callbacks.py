@@ -6,15 +6,19 @@ class TensorboardCallback(BaseCallback):
         super().__init__(verbose)
 
     def _on_step(self) -> bool:
-        infos = self.locals.get('infos', [])
-        
-        if infos and len(infos) > 0:
-            # Get info from first (and only) environment
-            info = infos[0]
-            
-            # Check if this info contains the values you want
-            if 'cube_target_orientation' in info:
-                self.logger.record("custom/cube_target_orientation", info['cube_target_orientation'])
-        
-            
+        if self.num_timesteps % 1000 == 0:
+            infos = self.locals.get('infos', [])
+            if infos and len(infos) > 0:
+                # Get info from first (and only) environment
+                info = infos[0]
+                
+                if 'cube_target_orientation' in info:
+                    self.logger.record("custom/cube_target_orientation", info['cube_target_orientation'])
+
+                if 'cube_target_distance' in info:
+                    self.logger.record("custom/cube_target_distance", info['cube_target_distance'])
+
+                if 'num_contacts' in info:
+                    self.logger.record("custom/num_contacts", info['num_contacts'])
+
         return True
