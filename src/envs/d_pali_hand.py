@@ -47,7 +47,8 @@ class DPALI_Hand(MujocoEnv):
         self._cube_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, b"object")
         self._cube_geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"object")
         self._target_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, b"target")
-        
+        self._table_geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"table2")
+
         # Fixed target position
         self._target_pos = np.array([0.015, 0.0, -0.155])
         self._cube_initial_pos = np.array([0.0195, 0, -0.14])
@@ -85,7 +86,8 @@ class DPALI_Hand(MujocoEnv):
         target_ori = self._get_target_orientation()
 
         # Get contact information
-        contacts = np.array(self._check_contacts(), dtype=np.float32)
+        contacts, _ = self._check_contacts()
+        contacts = np.array(contacts, dtype=np.float32)
         
         # Relative positions (cube to target, end effectors to cube)
         cube_to_target = target_pos - cube_pos
@@ -134,10 +136,14 @@ class DPALI_Hand(MujocoEnv):
         if cube_jnt_addr >= 0:  # Check if the body has joints
             self.data.qpos[cube_jnt_addr:cube_jnt_addr + 3] = self._cube_initial_pos
         
+        # Reset target position
         # target_y = self.np_random.uniform(-0.04, 0.04)
-        target_pos = np.array([0.0195, -0.04, -0.14])
+        # target_pos = np.array([0.0195, -0.04, -0.14])
+        # self.model.body_pos[self._target_id] = target_pos
 
-        self.model.body_pos[self._target_id] = target_pos
+        # Reset target orientation
+        target_ori = np.array([0.0, 0.0, 0.0, 1.0])  # Identity quaternion
+        self.model.body_quat[self._target_id] = target_ori
         
         # Forward the simulation to apply changes
         mujoco.mj_forward(self.model, self.data)
@@ -165,11 +171,16 @@ class DPALI_Hand(MujocoEnv):
     def _check_contacts(self):
         """Check if each end effector is in contact with the cube."""
         tip_contact = [False, False, False]  # L, R, U tips
+        table_contact = False
         
         for i in range(self.data.ncon):
             contact = self.data.contact[i]
             geom1_id = contact.geom1
             geom2_id = contact.geom2
+            if (geom1_id == self._table_geom_id and geom2_id == self._cube_geom_id) or \
+               (geom2_id == self._table_geom_id and geom1_id == self._cube_geom_id):
+                table_contact = True
+                continue
             
             for tip_idx, tip_id in enumerate(self._end_effector_id):
                 if ((geom1_id == self._cube_geom_id and geom2_id == tip_id) or 
@@ -177,14 +188,16 @@ class DPALI_Hand(MujocoEnv):
                     tip_contact[tip_idx] = True
                     break
         
-        return tip_contact
+        return tip_contact, table_contact
     
     def _compute_reward(self):
         """Improved reward function with dense rewards."""
         end_effector_pos = self._get_all_End_Effector_pos()
         cube_pos = self._get_cube_pos()
         target_pos = self._get_target_pos()
-        contacts = self._check_contacts()
+        cube_ori = self._get_cube_orientation()
+        target_ori = self._get_target_orientation()
+        contacts, table_contact = self._check_contacts()
         
         # # === PHASE 1: APPROACH PHASE ===
         # # Encourage gripper to approach cube
@@ -236,30 +249,60 @@ class DPALI_Hand(MujocoEnv):
         #           time_penalty)
 
         ###OLD REWARD FUNCTION###
-        cube_target_dist = np.linalg.norm(cube_pos - target_pos)
-        if cube_target_dist < 0.002 and sum(contacts) ==3:
-            success_bonus = 50.0
-            terminated = True
-        else: 
-            success_bonus = 0.0
-            terminated = False
+        # cube_target_dist = np.linalg.norm(cube_pos - target_pos)
+        # if cube_target_dist < 0.002 and sum(contacts) ==3:
+        #     success_bonus = 50.0
+        #     terminated = True
+        # else: 
+        #     success_bonus = 0.0
+        #     terminated = False
 
-        reward = -cube_target_dist - (3-sum(contacts)) * 0.05 + success_bonus
+        # reward = -cube_target_dist - (3-sum(contacts)) * 0.05 + success_bonus
+
+        ### Orientation Old Reward Function ###
+
+        ## Encourage gripper to approach cube
+        ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
+        avg_ee_cube_dist = np.mean(ee_cube_distances)
         
+        # Dense approach reward (decreases as gripper gets closer)
+        approach_reward = -avg_ee_cube_dist
+
+        cube_target_ori = np.linalg.norm(cube_ori - target_ori)
+        
+        terminated = False
+        success_bonus = 0.0
+
+        if (cube_target_ori < 0.1 and sum(contacts) == 3 and table_contact == False):
+            success_bonus = 10
+            terminated = False # Set to this to disable success based termination
+
+        if (table_contact == True):
+            table_penalty = -5.0
+        else :
+            table_penalty = 0.0
+
+        reward = approach_reward - cube_target_ori - (3 - sum(contacts)) * 0.05 + success_bonus + table_penalty
+
         return reward, terminated
     
     def _get_info(self):
         """Return diagnostic information."""
-        contacts = self._check_contacts()
+        contacts, _ = self._check_contacts()
         cube_pos = self._get_cube_pos()
         target_pos = self._get_target_pos()
+        target_ori = self._get_target_orientation()
+        cube_ori = self._get_cube_orientation()
         
         return {
             'cube_target_distance': np.linalg.norm(cube_pos - target_pos),
+            'cube_target_orientation': np.linalg.norm(cube_ori - target_ori),
             'num_contacts': sum(contacts),
             'contacts': contacts,
             'cube_position': cube_pos,
             'target_position': target_pos,
+            'cube_orientation': cube_ori,
+            'target_orientation': target_ori,
             'episode_step': self.current_step,
             'max_episode_steps': self.max_episode_steps
         }

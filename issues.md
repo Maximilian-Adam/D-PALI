@@ -16,3 +16,14 @@
 ## 03/06/25
 - v4.1 is currently the best, with a static target it nearly gets it right, just slightly off, and doesn't grip very well
 - Need to add orientation to the observation space too
+
+## 09/06/25
+- Normalise Obsrevations 1 
+- Dynamic learning rate 2
+- Limit successed based rewards 3
+- Balance rewards 4
+- Custom Tensorboard logs
+- Back link is wrong
+- Update Model
+- Find hyperparamters 
+- Find workspace
