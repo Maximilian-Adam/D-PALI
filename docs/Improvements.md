@@ -2,10 +2,7 @@
 
 | Issue                                     | Possible Solution                                                                              | Working on it |
 | ----------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------- |
-| Hard-coded constants inside the env class | Move them to a config file or pass via `kwargs`; surface through Gym metadata                  |  M             |
-| Manual action-scaling (`action * π/3`)    | Wrap the env with `gymnasium.wrappers.TransformAction` to make scaling explicit and composable |               |
-| No `seed` property exposed                | Store and expose a seed to guarantee reproducible resets                                       |   M            |
-| Reward terms on very different scales     | Re-weight or divide by a common factor to keep values in the same ballpark                     |               |
+| |                  |              |
 
 ---
 
