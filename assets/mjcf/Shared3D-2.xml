@@ -26,7 +26,7 @@ In general, for a better understanding of this, seems like the compuatation chap
 
     <asset>
         <!-- this defines texture -> material -> model -->
-        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512" />
+        <texture type="skybox" builtin="gradient" rgb1="0 0.5 0.7" rgb2="0 0 0" width="512" height="512" />
         <!-- plane texture -->
         <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" width="512" height="512" mark="cross" markrgb=".8 .8 .8" />
         <!-- material to be refered to in geoms -->
@@ -91,8 +91,9 @@ In general, for a better understanding of this, seems like the compuatation chap
     <equality><!--Equality contraints (basc connects the front link and long (curved) link, since they're not connected in the kinematic tree)-->
         <connect name="Connect_L" active="true" body1="Long_Link_L" body2="Front_Link_L" anchor="0.0405 0 -0.005" solref="0.002 1" solimp="0.99 0.999 0.001" />
         <connect name="Connect_R" active="true" body1="Long_Link_R" body2="Front_Link_R" anchor="0.0405 0 -0.005" solref="0.002 1" solimp="0.99 0.999 0.001" />
-        <connect name="Connect_U" active="true" body1="Long_Link_U" body2="Front_Link_U" anchor="0.0405 0 -0.005" solref="0.002 1" solimp="0.99 0.999 0.001" />
-    </equality>
+        <!--<connect name="Connect_U" active="true" body1="Long_Link_U" body2="Front_Link_U" anchor="0.0405 0 -0.005" solref="0.002 1" solimp="0.99 0.999 0.001" />
+    -->
+        </equality>
 
 
     <actuator><!--Sets up actuators. Back and front joint are for the linkages connecting to the servos. Base actuators are for moving the fingers radially around the base.
@@ -104,8 +105,10 @@ In general, for a better understanding of this, seems like the compuatation chap
         <position name="R Front" joint="Front_Joint_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>  
         <position name="R Back" joint="Back_Joint_R"  ctrlrange="-3.1415 3.1415"  kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
         <position name="R Base" joint="Base_R" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-
+<!--
         <position name="U Front" joint="Front_Joint_U" ctrlrange="-3.1415 3.1415 " kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
         <position name="U Back" joint="Back_Joint_U"  ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>
-        <position name="U Base" joint="Base_U" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>    </actuator>
-</mujoco>
+        <position name="U Base" joint="Base_U" ctrlrange="-3.1415 3.1415" kp="186" kv="11.8" gear="1" forcerange="-9.22290304e+00 9.22290304e+00"/>    
+    -->
+    </actuator>
+        </mujoco>
