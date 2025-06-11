@@ -2,6 +2,7 @@ from stable_baselines3 import TD3
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold, CheckpointCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.noise import NormalActionNoise
+from envs import DPALI_Hand
 import warnings
 from glfw import GLFWError
 import time
@@ -12,6 +13,7 @@ import glfw
 import torch
 import os
 import numpy as np
+
 
 warnings.simplefilter("error", GLFWError)
 
@@ -29,7 +31,8 @@ def setup(mode="test", log_dir=None, max_episode_steps=500):
     env = gym.make("DPALIHand-v0", 
                    render_mode=_render_mode, 
                    max_episode_steps=max_episode_steps,
-                   frame_skip=frame_skip)
+                   frame_skip=frame_skip,
+                   seed=20)
     
     if log_dir and mode == "train":
         env = Monitor(env, log_dir)
@@ -67,7 +70,7 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
         tau=0.005,                    # Soft update coefficient for target networks
         gamma=0.99,                   # Discount factor
         train_freq=(4, "step"),       # Train after every 4 steps
-        gradient_steps=4,           # Do as many gradient steps as environment steps
+        gradient_steps=4,             # Do as many gradient steps as environment steps
         action_noise=action_noise,    # Exploration noise
         policy_delay=2,               # Delay policy updates (key TD3 feature)
         target_policy_noise=0.2,      # Noise added to target policy
@@ -231,7 +234,7 @@ def testing_td3(file_path, num_episodes=10, max_episode_steps=500):
             # Episode summary
             episode_rewards.append(episode_reward)
             episode_lengths.append(step_count)
-            
+                        
             if terminated:  # Task completed successfully
                 success_count += 1
                 print(f"  ✓ SUCCESS! Task completed in {step_count} steps")
@@ -244,7 +247,8 @@ def testing_td3(file_path, num_episodes=10, max_episode_steps=500):
             final_info = episode_info[-1]
             print(f"  Final cube-target distance: {final_info.get('cube_target_distance', 'N/A'):.4f}")
             print(f"  Final contacts: {final_info.get('num_contacts', 'N/A')}")
-            
+            #env.unwrapped.print_End_Effector_pos()
+
             time.sleep(1)  # Pause between episodes
             
     except KeyboardInterrupt:
@@ -288,7 +292,7 @@ def hyperparameter_search():
         )
 
 if __name__ == "__main__":
-    mode = "train"  # "train", "test", "continue", or "hypersearch"
+    mode = "test"  # "train", "test", "continue", or "hypersearch"
     
     # Configuration
     total_timesteps = 100000 
