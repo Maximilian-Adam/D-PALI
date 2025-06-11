@@ -10,25 +10,19 @@
         <flag warmstart="enable"/>
     </option>
 
-
     <include file="Shared3D-2.xml"/>
 
     <worldbody>
 
       <body name="workspace" pos="0 0 0" euler="0 1.5708 0">    <!-- rotate 90° about Y -->
             <body pos="0 0 0" euler="0 0 -1.5708">  <!-- then 90° about Z -->
-                <!--adds the floor and platform-->
-                
-                <!--<geom name="floor" pos="0 0 -0.1" size="15 15 1" type="plane" material="matplane" margin="0.001" condim="3" friction="1 0.005 0.0001" />
-                <body name="floor" pos="0 0 -0.1"/>-->
-
+ 
                 <!--white platform-->
-                <!--<geom name="table" class="platform" type="box" size=".08 .08 .05" pos="0 0.15 -0.05" rgba="1.5 1.5 1.5 0.5"/> -->
-
+                <!--<geom name="table" class="platform" type="box" size=".08 .08 .05" pos="0 0.15 -0.05" rgba="1.5 1.5 1.5 0.5"/>
+                --> 
                 <!--pink platform
                 <geom name="table2" class="platform" type="box" size=".08 .01 .1" pos="0 0.18 0.0" rgba="1.5 1 1.5 0.5" friction="1 0.005 0.0001"/>
                 -->
-
                 <!--This line adds the robot-->
                 <include file="Gripper3D-2.xml"/>
             </body>
@@ -36,17 +30,13 @@
             
         </body>
 
-        <body name="Perp-Cam" pos="-0.18 0 -0.11" euler="1.5708 -1.5708 0 ">
-                <geom name="" type="box" size="0.01 0.01 0.015" rgba="1 0.785 0.785 0.5" />
-            <camera name="Perp-Cam" mode="fixed" orthographic="false"  resolution="0.04 0.03"
-             focalpixel="0.02 0.02"  sensorsize="0.00115 0.00115" />
-            
-		</body>
-
-        <body name="Ortho-Cam" pos="-0.18 0 -0.11" euler="1.5708 -1.5708 0 ">
-                <geom name="" type="box" size="0.01 0.01 0.015" rgba="1 0.785 0.785 0.5" />
+        <geom name="checker-plane" euler=" 0 1.5708 0" pos="0.015 0 0" size="0.2 0.2 0.001"
+         type="plane" material="matplane" margin="0.001" condim="3" friction="1 0.005 0.0001" />
+       
+        <body name="Ortho-Cam" pos="0.015 0 0" euler="1.5708 -1.5708 0 ">
+            <geom name="" type="plane" size="0.15 0.15 0.001" rgba="1 0.785 0.785 0.5" />
             <camera name="Ortho-Cam" mode="fixed" orthographic="true"  
-            focal= "0.3 0.3" resolution=" 0.04 0.04" sensorsize="0.0015 0.0015" />
+            fovy = "0.3" ipd="0.006"/>
             
 		</body>
 
