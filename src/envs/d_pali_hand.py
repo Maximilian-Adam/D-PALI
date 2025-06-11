@@ -15,7 +15,7 @@ class DPALI_Hand(MujocoEnv):
                  render_mode: str | None = "human",
                  max_episode_steps: int = 500):
 
-        xml_path = ASSETS / (xml or "DPALI3D.xml")
+        xml_path = ASSETS / (xml or "DPALI3D-2.xml")
 
         calculated_fps = 1 / (frame_skip * 0.002)
 
