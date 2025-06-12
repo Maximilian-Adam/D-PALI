@@ -60,9 +60,9 @@ def quick_gripper_search():
     
     def objective(trial):
         # Focus on the big 4
-        learning_rate = trial.suggest_float('learning_rate', 1e-4, 5e-4, log=True)
+        learning_rate = trial.suggest_float('learning_rate', 1e-4, 8e-4, log=True)
         batch_size = trial.suggest_categorical('batch_size', [256, 512, 1024, 2048])
-        gamma = trial.suggest_float('gamma', 0.98, 0.999)
+        gamma = trial.suggest_float('gamma', 0.975, 0.999)
         net_size = trial.suggest_categorical('net_size', [256, 512, 1024])
         
         # Use good defaults for everything else
@@ -76,7 +76,7 @@ def quick_gripper_search():
             gamma=gamma,
             buffer_size=1500000,  # Good default
             tau=0.005,           # Good default
-            policy_kwargs=dict(net_arch=[net_size, net_size, 256]),
+            policy_kwargs=dict(net_arch=[net_size, net_size, 256]), # 3 layers (may want to add layers as a parameter to search)
             verbose=0
         )
         
