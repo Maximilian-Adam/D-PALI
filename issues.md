@@ -27,3 +27,26 @@
 - Update Model
 - Find hyperparamters 
 - Find workspace
+
+## 10/06/25
+- Reward may need tweaking (current ori v1 best model tries to turn, but further training (v1.1) yielded no results)
+- Stil need:
+    - Updated Model
+    - Find Hyperparamters
+    - Find workspace
+- Also may want to look into tweaking action noise for better exploration, and also developing a better network architecture
+- Basically, go through the reccomendations Claude gave too (and/or just do the hyperparamter stuff)
+
+## 11/06/25
+- Started Hyperparameter search, got 10 trails done, aiming for a total of 50.
+    - Using Bayseian optimisation for the search
+- Also began looking into the workspace stuff with the new Matlab scripts given, the graphs for our values don't quite look right, so from here there are two optioons:
+    - Figure out what's going wrong in the current matlab script for old gripper
+    - Make our own script for our gripper (leaning towards this atm)
+- These are still left to do, but likely won't be completed over the next few days:
+    - Update Model (with smaller base)
+    - Find Hyperparameters (doing)
+    - Find Workspace (doing)
+    - Tweak reward 
+    - Tweak noise action
+    - Claude reccomendations

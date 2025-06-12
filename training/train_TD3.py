@@ -22,7 +22,7 @@ from callbacks import TensorboardCallback  # Custom callbacks for TensorBoard lo
 warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
-global_mode = "continue"
+global_mode = "test"
 global_total_timesteps = 500000 # Total timesteps for training
 global_eval_freq = 250000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
@@ -33,7 +33,7 @@ global_initial_lr = 3e-4
 global_final_lr = 1e-5
 global_folder = "Ori_V1.0" # Name of folder for saving models (Increment when training from scratch)
 global_version = "v1.1" # Sub-version for tracking changes (increment when you use continue training)
-global_save_dir = "./training/checkpoints/TD3/" + global_folder + "/" + global_version # Directory to save models
+global_save_dir = "./training/checkpoints/TD3/" + global_folder + "/best_model/best_model.zip" # Directory to save models
 global_stats_dir = "./training/checkpoints/TD3/" + global_folder + "/" + global_version + "_normalization.pkl" # Directory to save normalization stats
 global_old_stats_dir = "./training/checkpoints/TD3/Ori_V1.0/v1.0_normalization.pkl" # Directory for old normalization stats (if continuing training)
 global_old_dir = "./training/checkpoints/TD3/" + global_folder + "/best_model/best_model.zip" # Direcotory for old model (if continuing training)
@@ -251,7 +251,7 @@ def continue_training_td3(model_path, total_timesteps, save_path, log_dir="./tra
 
 def testing_td3(file_path, num_episodes=10, max_episode_steps = global_max_episode_steps):
     """Test a trained TD3 model."""
-    env = setup("test", max_episode_steps=max_episode_steps, file_path=file_path)
+    env = setup("test", max_episode_steps=max_episode_steps)
 
     # Load the trained model
     model = TD3.load(file_path, env=env)
