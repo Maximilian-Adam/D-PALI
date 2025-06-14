@@ -1,5 +1,6 @@
 from stable_baselines3 import TD3
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold, CheckpointCallback
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.noise import NormalActionNoise
 from envs import DPALI_Hand
@@ -7,24 +8,40 @@ import warnings
 from glfw import GLFWError
 import time
 import gymnasium as gym
-import envs  # registers DPALIHand-v0
+import envs # registers DPALIHand-v0
 import mujoco
 import glfw
 import torch
 import os
 import numpy as np
+from typing import Callable
+from math import cos, pi
+from callbacks import TensorboardCallback  # Custom callbacks for TensorBoard logging
 
+###Learning rate, success based?, hyperparameters, balance reward, normalise observations
 
 warnings.simplefilter("error", GLFWError)
 
-global_eval_freq = 50000
-global_max_episode_steps = 500
-global_save_freq = 50000
-global_reward_threshold = 5000.0
+"""Global configuration parameters for training and evaluation."""
+global_mode = "continue"
+global_total_timesteps = 500000 # Total timesteps for training
+global_eval_freq = 250000 # Frequency of evaluation during training (in steps)
+global_max_episode_steps = 500 # Maximum steps per episode during training
+global_save_freq = 100000 # Frequency of saving model checkpoints (in steps)
+global_reward_threshold = 2500.0 # Reward threshold for stopping training
+
+global_initial_lr = 3e-4 
+global_final_lr = 1e-5
+global_folder = "Ori_V1.0" # Name of folder for saving models (Increment when training from scratch)
+global_version = "v1.1" # Sub-version for tracking changes (increment when you use continue training)
+global_save_dir = "./training/checkpoints/TD3/" + global_folder + "/" + global_version # Directory to save models
+global_stats_dir = "./training/checkpoints/TD3/" + global_folder + "/" + global_version + "_normalization.pkl" # Directory to save normalization stats
+global_old_stats_dir = "./training/checkpoints/TD3/Ori_V1.0/v1.0_normalization.pkl" # Directory for old normalization stats (if continuing training)
+global_old_dir = "./training/checkpoints/TD3/" + global_folder + "/best_model/best_model.zip" # Direcotory for old model (if continuing training)
 
 
 
-def setup(mode="test", log_dir=None, max_episode_steps=500):
+def setup(mode="train", log_dir=None, max_episode_steps=500):
     """Set up the environment with optional monitoring."""
     _render_mode = "human" if mode == "test" else None
     frame_skip = 5 if mode == "test" else 20  # Double frame skip for training
@@ -37,8 +54,41 @@ def setup(mode="test", log_dir=None, max_episode_steps=500):
     if log_dir and mode == "train":
         env = Monitor(env, log_dir)
     
-    obs, _ = env.reset()
+    env = DummyVecEnv([lambda: env])
+    
+
+    if (mode == "train"):
+        env = VecNormalize(
+            env,
+            training=True,           # Update statistics during training
+            norm_obs=True,           # Normalize observations
+            norm_reward=True,        # Normalize rewards
+            clip_obs=10.0,           # Clip normalized obs to ±10
+            clip_reward=10.0,        # Clip normalized rewards
+            gamma=0.99,              # For reward normalization
+            epsilon=1e-8
+        )
+    elif (mode == "continue"):
+        stats_dir = global_old_stats_dir
+        env = VecNormalize.load(stats_dir, env)
+    elif (mode == "test"):
+        stats_dir = global_stats_dir if global_stats_dir != None else file_path + "_normalization.pkl"
+        # Load normalization statistics
+        env = VecNormalize.load(stats_dir, env)
+        env.training = False      # Don't update stats during testing
+        env.norm_reward = False   # Don't normalize rewards during testing
+
     return env
+
+
+def lr_schedule(initial_value: float, final_value : float) -> Callable[[float], float]:
+
+    def func(progress_remaining: float) -> float:
+        t = 1 - progress_remaining
+        output = final_value + (initial_value - final_value) * 0.5 * (1 + cos(pi * t))
+        return output
+
+    return func
 
 def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_freq = global_eval_freq):
     """Train using TD3 algorithm - excellent for continuous control tasks."""
@@ -63,7 +113,7 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
     model = TD3(
         "MlpPolicy",
         env,
-        learning_rate=1e-3,           # Learning rate - can be higher for TD3
+        learning_rate=lr_schedule(global_initial_lr,global_final_lr), # Learning rate schedule
         buffer_size=1000000,          # Large replay buffer for better sample efficiency  
         learning_starts=10000,        # Start learning after collecting some experience
         batch_size=2048,               # Batch size for training
@@ -83,6 +133,8 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
         tensorboard_log=log_dir + "td3_tensorboard/",
         device="cuda" if torch.cuda.is_available() else "cpu"
     )
+
+    
     
     # Callbacks for training
     # Stop training if we achieve good performance
@@ -110,10 +162,14 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
         save_path=os.path.dirname(file_path) + "/checkpoints/",
         name_prefix="td3_checkpoint"
     )
+
+    custom_callback = TensorboardCallback(
+        verbose=1
+    )
     
     # Combine callbacks
-    callbacks = [checkpoint_callback, eval_callback]
-    
+    callbacks = [checkpoint_callback, eval_callback, custom_callback]
+
     print('*************TD3 Training started*************')
     print(f"Device: {model.device}")
     print(f"Action space: {env.action_space}")
@@ -128,11 +184,14 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
     # Start training
     model.learn(
         total_timesteps=total_timesteps,
-        callback=callbacks
+        callback=callbacks,
+        tb_log_name=global_folder + "_" + global_version,  # TensorBoard log name
     )
     
     # Save final model
+    stats_dir = global_stats_dir if global_stats_dir != None else file_path + "_normalization.pkl"
     model.save(file_path)
+    env.save(stats_dir)  # Save VecNormalize stats
     
     # Clean up
     env.close()
@@ -173,23 +232,29 @@ def continue_training_td3(model_path, total_timesteps, save_path, log_dir="./tra
         save_path=os.path.dirname(save_path) + "/checkpoints/",
         name_prefix="td3_checkpoint_continued"
     )
+
+    custom_callback = TensorboardCallback(
+        verbose=1
+    )
     
     print('*************Continuing TD3 Training*************')
     model.learn(
         total_timesteps=total_timesteps,
-        callback=[eval_callback, checkpoint_callback],
-        reset_num_timesteps=False  # Don't reset timestep counter
+        callback=[eval_callback, checkpoint_callback, custom_callback],
+        reset_num_timesteps=False,  # Don't reset timestep counter
+        tb_log_name=global_folder + "_" + global_version  # TensorBoard log name
     )
     
     model.save(save_path)
+    env.save(global_stats_dir)  # Save VecNormalize stats
     env.close()
     eval_env.close()
     print('*************Training continuation finished*************')
 
-def testing_td3(file_path, num_episodes=10, max_episode_steps=500):
+def testing_td3(file_path, num_episodes=10, max_episode_steps = global_max_episode_steps):
     """Test a trained TD3 model."""
-    env = setup("test", max_episode_steps=max_episode_steps)
-    
+    env = setup("test", max_episode_steps=max_episode_steps, file_path=file_path)
+
     # Load the trained model
     model = TD3.load(file_path, env=env)
     
@@ -202,7 +267,7 @@ def testing_td3(file_path, num_episodes=10, max_episode_steps=500):
     
     try:
         for episode in range(num_episodes):
-            obs, _ = env.reset()
+            obs = env.reset()
             episode_reward = 0
             step_count = 0
             episode_info = []
@@ -212,8 +277,10 @@ def testing_td3(file_path, num_episodes=10, max_episode_steps=500):
             while True:
                 # Use deterministic actions for testing
                 action, _ = model.predict(obs, deterministic=True)
-                obs, reward, terminated, truncated, info = env.step(action)
-                
+                obs, reward, done, info = env.step(action)
+                info = info[0] # Since there's only one evironment
+                reward = reward[0]
+                done = done[0]
                 episode_reward += reward
                 step_count += 1
                 episode_info.append(info)
@@ -221,13 +288,12 @@ def testing_td3(file_path, num_episodes=10, max_episode_steps=500):
                 # Print progress every 50 steps
                 if step_count % 50 == 0:
                     print(f"  Step {step_count}: Reward: {reward:.3f}, "
-                          f"Cube-Target Dist: {info.get('cube_target_distance', 'N/A'):.4f}, "
-                          f"Contacts: {info.get('num_contacts', 'N/A')}")
+                          f"Cube-Target Orientation: {info['cube_target_orientation']:.4f}, "
+                          f"Contacts: {info['num_contacts']}")
                 
                 env.render()
                 time.sleep(1/60)  # Control rendering speed
                 
-                done = terminated or truncated
                 if done:
                     break
             
@@ -246,9 +312,12 @@ def testing_td3(file_path, num_episodes=10, max_episode_steps=500):
             # Show final state info
             final_info = episode_info[-1]
             print(f"  Final cube-target distance: {final_info.get('cube_target_distance', 'N/A'):.4f}")
-            print(f"  Final contacts: {final_info.get('num_contacts', 'N/A')}")
+            #print(f"  Final contacts: {final_info.get('num_contacts', 'N/A')}")
             #env.unwrapped.print_End_Effector_pos()
 
+            print(f"  Final cube-target orientation: {final_info['cube_target_orientation']:.4f}")
+            print(f"  Final contacts: {final_info['num_contacts']}")
+            
             time.sleep(1)  # Pause between episodes
             
     except KeyboardInterrupt:
@@ -292,11 +361,11 @@ def hyperparameter_search():
         )
 
 if __name__ == "__main__":
-    mode = "test"  # "train", "test", "continue", or "hypersearch"
+    mode = global_mode  # "train", "test", "continue", or "hypersearch"
     
     # Configuration
-    total_timesteps = 100000 
-    file_path = "./training/checkpoints/td3_DPALIHand-v3.0"
+    total_timesteps = global_total_timesteps
+    file_path = global_save_dir
     
     if mode == "train":
         training_td3(total_timesteps, file_path)
@@ -306,9 +375,9 @@ if __name__ == "__main__":
         
     elif mode == "continue":
         # Continue training from existing model
-        existing_model = "./training/checkpoints/checkpoints/td3_checkpoint_50000_steps.zip"
-        new_save_path = "./training/checkpoints/td3_DPALIHand-v1.0"
-        continue_training_td3(existing_model, 450000, new_save_path)
+        existing_model = global_old_dir
+        new_save_path = global_save_dir
+        continue_training_td3(existing_model, global_total_timesteps, new_save_path)
         
     elif mode == "hypersearch":
         hyperparameter_search()
