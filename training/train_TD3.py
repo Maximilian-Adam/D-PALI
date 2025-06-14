@@ -63,8 +63,8 @@ def training_td3( total_timesteps, file_path, log_dir="./training/logs/", eval_f
         # Default policy arguments for TD3
         _policy_kwargs = dict(
             net_arch=dict(
-                pi=[512, 512, 256],  # actor 
-                qf=[256, 256]  # critic 
+                pi=[1024,512,512, 256],  # actor 
+                qf=[1024, 64]  # critic 
             ),
             activation_fn=torch.nn.ReLU
         )
@@ -101,8 +101,8 @@ def training_td3( total_timesteps, file_path, log_dir="./training/logs/", eval_f
     # # Evaluate the model periodically and save the best one
     eval_callback = EvalCallback(
         eval_env,
-        best_model_save_path=os.path.dirname(file_path) + "/best_model/",
-        log_path=log_dir + "eval_logs/",
+        best_model_save_path=os.path.dirname(file_path) + "/checkpoints/best_model/",
+        log_path=log_dir + "/logs/eval_logs/",
         eval_freq=eval_freq,
         n_eval_episodes=10,           # Number of episodes for evaluation
         deterministic=True,           # Use deterministic actions for evaluation
@@ -314,7 +314,7 @@ if __name__ == "__main__":
         # Continue training from existing model
         existing_model = "./training/checkpoints/checkpoints/td3_checkpoint_50000_steps.zip"
         new_save_path = "./training/checkpoints/td3_DPALIHand-v1.0"
-        continue_training_td3(existing_model, 450000, new_save_path)
+        continue_training_td3(existing_model, 100000, new_save_path)
         
     elif mode == "hypersearch":
         hyperparameter_search()

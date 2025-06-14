@@ -218,7 +218,9 @@ class DPALI_Hand(MujocoEnv):
         
         # === PENALTIES ===
         # Time penalty to encourage efficiency
-        time_penalty = -0.5
+        time_penalty = -5
+
+    
         
         # Total reward
         reward = (approach_reward + 
