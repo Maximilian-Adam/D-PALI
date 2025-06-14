@@ -23,12 +23,12 @@ from callbacks import TensorboardCallback  # Custom callbacks for TensorBoard lo
 warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
-global_mode = "continue"
+global_mode = "train"
 global_total_timesteps = 500000 # Total timesteps for training
 global_eval_freq = 250000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
 global_save_freq = 100000 # Frequency of saving model checkpoints (in steps)
-global_reward_threshold = 2500.0 # Reward threshold for stopping training
+global_reward_threshold = 350.0 # Reward threshold for stopping training
 
 global_initial_lr = 3e-4 
 global_final_lr = 1e-5
@@ -41,7 +41,7 @@ global_old_dir = "./training/checkpoints/TD3/" + global_folder + "/best_model/be
 
 
 
-def setup(mode="train", log_dir=None, max_episode_steps=500):
+def setup(mode="train", log_dir=None, max_episode_steps=500, file_path=None):
     """Set up the environment with optional monitoring."""
     _render_mode = "human" if mode == "test" else None
     frame_skip = 5 if mode == "test" else 20  # Double frame skip for training
@@ -300,13 +300,13 @@ def testing_td3(file_path, num_episodes=10, max_episode_steps = global_max_episo
             # Episode summary
             episode_rewards.append(episode_reward)
             episode_lengths.append(step_count)
-                        
-            if terminated:  # Task completed successfully
+            
+            if done and step_count < max_episode_steps:
                 success_count += 1
                 print(f"  ✓ SUCCESS! Task completed in {step_count} steps")
             else:
                 print(f"  ✗ Episode ended by timeout after {step_count} steps")
-            
+
             print(f"  Episode Reward: {episode_reward:.2f}")
             
             # Show final state info
