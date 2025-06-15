@@ -9,3 +9,4 @@ MUJOCO_LOG.TXT
 **/models/
 **/__pycache__/
 **/.vscode/
+**/TD3/
