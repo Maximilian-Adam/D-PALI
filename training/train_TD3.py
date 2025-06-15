@@ -23,7 +23,7 @@ from callbacks import TensorboardCallback  # Custom callbacks for TensorBoard lo
 warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
-global_mode = "train"
+global_mode = "test"
 global_total_timesteps = 500000 # Total timesteps for training
 global_eval_freq = 250000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
@@ -32,16 +32,18 @@ global_reward_threshold = 350.0 # Reward threshold for stopping training
 
 global_initial_lr = 3e-4 
 global_final_lr = 1e-5
-global_folder = "Ori_V1.0" # Name of folder for saving models (Increment when training from scratch)
-global_version = "v1.1" # Sub-version for tracking changes (increment when you use continue training)
-global_save_dir = "./training/checkpoints/TD3/" + global_folder + "/" + global_version # Directory to save models
-global_stats_dir = "./training/checkpoints/TD3/" + global_folder + "/" + global_version + "_normalization.pkl" # Directory to save normalization stats
-global_old_stats_dir = "./training/checkpoints/TD3/Ori_V1.0/v1.0_normalization.pkl" # Directory for old normalization stats (if continuing training)
-global_old_dir = "./training/checkpoints/TD3/" + global_folder + "/best_model/best_model.zip" # Direcotory for old model (if continuing training)
+global_folder = "Ori_V1.1" # Name of folder for saving models (Increment when training from scratch)
+global_version = "v1.0" # Sub-version for tracking changes (increment when you use continue training)
+
+global_save_dir = f"./training/TD3/{global_folder}/" # Directory to save models
+global_best_model_path = os.path.join(global_save_dir, "best_model/best_model.zip")
+global_stats_path = os.path.join(global_save_dir, global_version, f"{global_version}_normalization.pkl")
+global_old_model_dir = "./training/TD3/Ori_V1.1/best_model/best_model.zip"
+global_old_stats_path = f"./training/TD3/Ori_V1.1/v1.0/{global_version}_normalization.pkl" # Make sure this path is correct for your old stats
 
 
 
-def setup(mode="train", log_dir=None, max_episode_steps=500, file_path=None):
+def setup(mode="train", log_dir=None, max_episode_steps=500):
     """Set up the environment with optional monitoring."""
     _render_mode = "human" if mode == "test" else None
     frame_skip = 5 if mode == "test" else 20  # Double frame skip for training
@@ -51,7 +53,7 @@ def setup(mode="train", log_dir=None, max_episode_steps=500, file_path=None):
                    frame_skip=frame_skip,
                    seed=20)
     
-    if log_dir and mode == "train":
+    if log_dir and (mode == "train" or mode == "continue"):
         env = Monitor(env, log_dir)
     
     env = DummyVecEnv([lambda: env])
@@ -69,15 +71,16 @@ def setup(mode="train", log_dir=None, max_episode_steps=500, file_path=None):
             epsilon=1e-8
         )
     elif (mode == "continue"):
-        stats_dir = global_old_stats_dir
-        env = VecNormalize.load(stats_dir, env)
-    elif (mode == "test"):
-        stats_dir = global_stats_dir if global_stats_dir != None else file_path + "_normalization.pkl"
-        # Load normalization statistics
-        env = VecNormalize.load(stats_dir, env)
-        env.training = False      # Don't update stats during testing
-        env.norm_reward = False   # Don't normalize rewards during testing
+        env = VecNormalize.load(global_old_stats_path, env)
+        env.training = True
 
+    elif (mode == "test"):
+        # Load normalization stats for testing
+        if os.path.exists(global_stats_path):
+            env = VecNormalize.load(global_stats_path, env)
+            env.training = False
+            env.norm_reward = False 
+    
     return env
 
 
@@ -90,9 +93,9 @@ def lr_schedule(initial_value: float, final_value : float) -> Callable[[float], 
 
     return func
 
-def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_freq = global_eval_freq):
+def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_freq = global_eval_freq):
     """Train using TD3 algorithm - excellent for continuous control tasks."""
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    os.makedirs(save_dir, exist_ok=True)
     os.makedirs(log_dir, exist_ok=True)
     
     # Create training environment
@@ -146,7 +149,7 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
     # # Evaluate the model periodically and save the best one
     eval_callback = EvalCallback(
         eval_env,
-        best_model_save_path=os.path.dirname(file_path) + "/best_model/",
+        best_model_save_path=os.path.join(save_dir, "best_model/"),
         log_path=log_dir + "eval_logs/",
         eval_freq=eval_freq,
         n_eval_episodes=10,           # Number of episodes for evaluation
@@ -159,7 +162,7 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
     # Save checkpoints during training
     checkpoint_callback = CheckpointCallback(
         save_freq = global_save_freq,
-        save_path=os.path.dirname(file_path) + "/checkpoints/",
+        save_path=os.path.join(save_dir, "checkpoints/"),
         name_prefix="td3_checkpoint"
     )
 
@@ -185,25 +188,23 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
     model.learn(
         total_timesteps=total_timesteps,
         callback=callbacks,
-        tb_log_name=global_folder + "_" + global_version,  # TensorBoard log name
+        tb_log_name=f"{global_folder}_{global_version}"
     )
     
     # Save final model
-    stats_dir = global_stats_dir if global_stats_dir != None else file_path + "_normalization.pkl"
-    model.save(file_path)
-    env.save(stats_dir)  # Save VecNormalize stats
+    model.save(os.path.join(save_dir, "final_model.zip"))
+    env.save(os.path.join(save_dir, "vec_normalize.pkl"))
     
     # Clean up
     env.close()
     eval_env.close()
     
     print('*************TD3 Training finished*************')
-    print(f"Model saved to: {file_path}")
-    print(f"Best model saved to: {os.path.dirname(file_path)}/best_model/")
+    print(f"Model saved to: {save_dir}")
 
-def continue_training_td3(model_path, total_timesteps, save_path, log_dir="./training/logs/"):
+def continue_training_td3(model_path, total_timesteps, save_dir, log_dir="./training/logs/"):
     """Continue training from a saved model."""
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    os.makedirs(save_dir, exist_ok=True)
     os.makedirs(log_dir, exist_ok=True)
     
     # Set up environments
@@ -217,7 +218,7 @@ def continue_training_td3(model_path, total_timesteps, save_path, log_dir="./tra
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold = global_reward_threshold, verbose=1)
     eval_callback = EvalCallback(
         eval_env,
-        best_model_save_path=os.path.dirname(save_path) + "/best_model/",
+        best_model_save_path=os.path.join(save_dir, "best_model/"),
         log_path=log_dir + "eval_logs/",
         eval_freq = global_eval_freq,
         n_eval_episodes=10,
@@ -229,7 +230,7 @@ def continue_training_td3(model_path, total_timesteps, save_path, log_dir="./tra
     
     checkpoint_callback = CheckpointCallback(
         save_freq = global_save_freq,
-        save_path=os.path.dirname(save_path) + "/checkpoints/",
+        save_path=os.path.join(save_dir, "checkpoints/"),
         name_prefix="td3_checkpoint_continued"
     )
 
@@ -245,24 +246,24 @@ def continue_training_td3(model_path, total_timesteps, save_path, log_dir="./tra
         tb_log_name=global_folder + "_" + global_version  # TensorBoard log name
     )
     
-    model.save(save_path)
-    env.save(global_stats_dir)  # Save VecNormalize stats
+    model.save(os.path.join(save_dir, "final_model.zip"))
+    env.save(os.path.join(save_dir, "vec_normalize.pkl")) # Save VecNormalize stats
     env.close()
     eval_env.close()
     print('*************Training continuation finished*************')
 
-def testing_td3(file_path, num_episodes=10, max_episode_steps = global_max_episode_steps):
+def testing_td3(model_path, stats_path, num_episodes=10, max_episode_steps = global_max_episode_steps):
     """Test a trained TD3 model."""
-    env = setup("test", max_episode_steps=max_episode_steps, file_path=file_path)
+    env = setup("test", max_episode_steps=max_episode_steps)
 
     # Load the trained model
-    model = TD3.load(file_path, env=env)
+    model = TD3.load(model_path, env=env)
     
     episode_rewards = []
     episode_lengths = []
     success_count = 0
     
-    print(f"Testing TD3 model: {file_path}")
+    print(f"Testing TD3 model: {model_path}")
     print(f"Running {num_episodes} episodes...")
     
     try:
@@ -365,20 +366,29 @@ if __name__ == "__main__":
     
     # Configuration
     total_timesteps = global_total_timesteps
-    file_path = global_save_dir
     
     if mode == "train":
-        training_td3(total_timesteps, file_path)
+        training_td3(global_total_timesteps, global_save_dir)
         
     elif mode == "test":
-        testing_td3(file_path, num_episodes=5)
+        model_to_test = global_best_model_path
+        stats_to_use = global_stats_path
+
+        # --- CRUCIAL: Verify files exist before trying to load them ---
+        if not os.path.exists(model_to_test):
+            print(f"\nFATAL: Model file not found at '{model_to_test}'")
+            print("Please ensure that training has been run and a 'best_model.zip' file was saved in the correct directory.")
+            exit(1)
+        
+        if not os.path.exists(stats_to_use):
+            print(f"\nFATAL: Normalization stats file not found at '{stats_to_use}'")
+            print("This 'vec_normalize.pkl' file is required to run the test with the correct environment normalization.")
+            exit(1)
+
+        testing_td3(model_to_test, stats_to_use, num_episodes=5)
         
     elif mode == "continue":
-        # Continue training from existing model
-        existing_model = global_old_dir
-        new_save_path = global_save_dir
-        continue_training_td3(existing_model, global_total_timesteps, new_save_path)
-        
+        continue_training_td3(global_old_model_dir, global_total_timesteps, global_save_dir)
     elif mode == "hypersearch":
         hyperparameter_search()
         

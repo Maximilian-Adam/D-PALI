@@ -27,6 +27,9 @@ class DPALI_Hand(MujocoEnv):
         },
     }
 
+    metadata = {"render_modes": ["human", "rgb_array"],
+                "render_fps": 100}
+
     def __init__(
         self,
         xml: str | None = None,
@@ -57,6 +60,16 @@ class DPALI_Hand(MujocoEnv):
         self._seed = seed
 
 
+        calculated_fps = 1 / (frame_skip * 0.002)
+
+        self.metadata = {
+            "render_modes": ["human", "rgb_array"],
+            "config": config,
+            "seed": self._seed,
+            "render_fps": calculated_fps
+        }
+
+
         # Initialize MujocoEnv (handles internal RNG via reset)
         super().__init__(
             str(xml_path),
@@ -64,19 +77,11 @@ class DPALI_Hand(MujocoEnv):
             observation_space=None,
             render_mode=render_mode,
             width=config['render_width'],
-            height=config['render_height'],
+            height=config['render_height']
         )
 
-        timestep = self.model.opt.timestep      
-        fps      = 1 / (self.frame_skip * timestep)
- 
-         # Update metadata
-        self.metadata.update ({
-            "render_modes": ["human", "rgb_array"],
-            "render_fps": fps,
-            "config": config,
-            "seed": self._seed
-        })
+        #timestep = self.model.opt.timestep      
+        #fps      = 1 / (self.frame_skip * timestep) 
 
         # Cache IDs
         self._end_effector_geom_ids = [
