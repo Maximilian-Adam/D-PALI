@@ -6,7 +6,7 @@ class TensorboardCallback(BaseCallback):
         super().__init__(verbose)
 
     def _on_step(self) -> bool:
-        if self.num_timesteps % 1000 == 0:
+        if self.num_timesteps % 10000 == 0:
             infos = self.locals.get('infos', [])
             if infos and len(infos) > 0:
                 # Get info from first (and only) environment
