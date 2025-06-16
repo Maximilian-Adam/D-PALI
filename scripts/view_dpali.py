@@ -2,7 +2,7 @@ import time
 import numpy as np
 
 from stable_baselines3 import SAC
-from envs.d_pali_hand import DPALI_Hand
+from envs.d_pali_hand_new import DPALI_Hand
 
 import gymnasium as gym
 from gymnasium import spaces

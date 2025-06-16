@@ -15,8 +15,9 @@ import torch
 import os
 import numpy as np
 from typing import Callable
-from math import cos, pi
+#from math import cos, pi
 from callbacks import TensorboardCallback  # Custom callbacks for TensorBoard logging
+import traceback
 
 ###Learning rate, success based?, hyperparameters, balance reward, normalise observations
 
@@ -24,11 +25,12 @@ warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
 global_mode = "test"
-global_total_timesteps = 500000 # Total timesteps for training
-global_eval_freq = 250000 # Frequency of evaluation during training (in steps)
+global_total_timesteps = 100000 # Total timesteps for training
+global_eval_freq = 50000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
-global_save_freq = 100000 # Frequency of saving model checkpoints (in steps)
+global_save_freq = 50000 # Frequency of saving model checkpoints (in steps)
 global_reward_threshold = 350.0 # Reward threshold for stopping training
+
 
 global_initial_lr = 3e-4 
 global_final_lr = 1e-5
@@ -88,7 +90,7 @@ def lr_schedule(initial_value: float, final_value : float) -> Callable[[float], 
 
     def func(progress_remaining: float) -> float:
         t = 1 - progress_remaining
-        output = final_value + (initial_value - final_value) * 0.5 * (1 + cos(pi * t))
+        output = final_value + (initial_value - final_value) * 0.5 * (1 + np.cos(np.pi * t))
         return output
 
     return func
@@ -113,15 +115,29 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
     )
     
     # TD3 hyperparameters optimized for manipulation tasks
+
+    optimized_hyperparams = {
+    'learning_rate': 0.0002846710930711627,
+    'batch_size': 512,
+    'buffer_size': 1000000,
+    'tau': 0.005,
+    'gamma': 0.99,
+    'policy_kwargs': {
+        'net_arch': {
+            'pi': [512, 512, 256],
+            'qf': [1024, 64]
+        }
+    }
+}
     model = TD3(
         "MlpPolicy",
         env,
-        learning_rate=lr_schedule(global_initial_lr,global_final_lr), # Learning rate schedule
-        buffer_size=1000000,          # Large replay buffer for better sample efficiency  
+        learning_rate=optimized_hyperparams['learning_rate'],    # Learning rate 
+        buffer_size=int(optimized_hyperparams['buffer_size']),          # Large replay buffer for better sample efficiency  
         learning_starts=10000,        # Start learning after collecting some experience
-        batch_size=2048,               # Batch size for training
-        tau=0.005,                    # Soft update coefficient for target networks
-        gamma=0.99,                   # Discount factor
+        batch_size=optimized_hyperparams['batch_size'],               # Batch size for training
+        tau=optimized_hyperparams['tau'],
+        gamma=optimized_hyperparams['gamma'],                   # Discount factor
         train_freq=(4, "step"),       # Train after every 4 steps
         gradient_steps=4,             # Do as many gradient steps as environment steps
         action_noise=action_noise,    # Exploration noise
@@ -129,8 +145,8 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         target_policy_noise=0.2,      # Noise added to target policy
         target_noise_clip=0.5,        # Clip target noise
         policy_kwargs=dict(
-            net_arch=[512, 512, 256],      # Network architecture [actor, critic]
-            activation_fn=torch.nn.ReLU
+        net_arch=optimized_hyperparams['policy_kwargs']['net_arch'],
+        activation_fn=torch.nn.ReLU
         ),
         verbose=1,
         tensorboard_log=log_dir + "td3_tensorboard/",
@@ -252,13 +268,40 @@ def continue_training_td3(model_path, total_timesteps, save_dir, log_dir="./trai
     eval_env.close()
     print('*************Training continuation finished*************')
 
-def testing_td3(model_path, stats_path, num_episodes=10, max_episode_steps = global_max_episode_steps):
-    """Test a trained TD3 model."""
-    env = setup("test", max_episode_steps=max_episode_steps)
-
-    # Load the trained model
-    model = TD3.load(model_path, env=env)
+def testing_td3(model_path, num_episodes=10, max_episode_steps = global_max_episode_steps):
     
+    """Test a trained TD3 model."""
+    try:
+        env = setup("test", max_episode_steps=max_episode_steps)
+ 
+        # Load the trained model
+        # model = TD3.load(model_path, env=env)
+
+        #If model is messed up use this:
+
+        safe_lr_schedule = 0.0001 
+
+        # Create a dictionary to override the problematic component.
+        custom_objects = {
+            "learning_rate": safe_lr_schedule
+        }
+
+        # Pass the custom_objects dictionary to the load function.
+        model = TD3.load(
+            model_path,
+            env=env,
+            custom_objects=custom_objects
+        )
+    
+    except Exception as e:
+        # This is the crucial part. It will catch ANY error and print it.
+        print(f"\n\n--- AN ERROR OCCURRED ---")
+        print(f"ERROR TYPE: {type(e).__name__}")
+        print(f"ERROR MESSAGE: {e}")
+        print("\n--- TRACEBACK ---")
+        traceback.print_exc() # Prints the full, detailed error traceback
+        print("--------------------")
+
     episode_rewards = []
     episode_lengths = []
     success_count = 0
@@ -385,7 +428,7 @@ if __name__ == "__main__":
             print("This 'vec_normalize.pkl' file is required to run the test with the correct environment normalization.")
             exit(1)
 
-        testing_td3(model_to_test, stats_to_use, num_episodes=5)
+        testing_td3(model_to_test, num_episodes=5)
         
     elif mode == "continue":
         continue_training_td3(global_old_model_dir, global_total_timesteps, global_save_dir)

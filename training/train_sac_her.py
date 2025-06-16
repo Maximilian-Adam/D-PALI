@@ -19,7 +19,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, DummyV
 from stable_baselines3.her.her_replay_buffer import HerReplayBuffer
 from stable_baselines3.common.callbacks import EvalCallback
 
-from envs.d_pali_hand import DPALI_Hand
+from envs.d_pali_hand_new import DPALI_Hand
 
 
 def make_goal_env(xml: str = None, render_mode: str = None) -> gym.Env:

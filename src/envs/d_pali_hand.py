@@ -59,6 +59,8 @@ class DPALI_Hand(MujocoEnv):
 
         self._seed = seed
 
+        #timestep = self.model.opt.timestep      
+        #fps      = 1 / (self.frame_skip * timestep)
 
         calculated_fps = 1 / (frame_skip * 0.002)
 
