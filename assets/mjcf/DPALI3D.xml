@@ -58,7 +58,7 @@
 -->
 
         <!-- Sets up target (shadow) cube-->
-        <body name="target" pos="0.016 -0.01 -0.15" euler="0 0 1.5708 ">
+        <body name="target" pos="0.015 0 -0.15" euler="0 0 -1.5708 ">
             <!-- <joint name="target:joint" type="free" damping="0.01"/> -->
             <geom name="target" type="box" size="0.015 0.015 0.015" rgba="0.8 0 0.8 0.2" group="1" condim="4" contype="0"
                   conaffinity="0"/>

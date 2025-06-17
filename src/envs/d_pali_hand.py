@@ -291,10 +291,10 @@ class DPALI_Hand(MujocoEnv):
 
         # weighted sum (weights sum to 1)
         shaped_reward = (
-            0.25 * approach_reward
-          + 0.25 * contact_reward
-          + 0.25 * manipulation_reward
-          + 0.25 * orientation_reward
+            0.2 * approach_reward
+          + 0.3 * contact_reward
+          + 0.2 * manipulation_reward
+          + 0.3 * orientation_reward
         )
 
         # --------------- sparse bonuses & penalties ----------------------

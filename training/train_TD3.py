@@ -25,7 +25,7 @@ warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
 global_mode = "test"
-global_total_timesteps = 100000 # Total timesteps for training
+global_total_timesteps = 500000 # Total timesteps for training
 global_eval_freq = 50000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
 global_save_freq = 50000 # Frequency of saving model checkpoints (in steps)
@@ -34,14 +34,14 @@ global_reward_threshold = 350.0 # Reward threshold for stopping training
 
 global_initial_lr = 3e-4 
 global_final_lr = 1e-5
-global_folder = "Ori_V1.1" # Name of folder for saving models (Increment when training from scratch)
+global_folder = "Ori_V1.0" # Name of folder for saving models (Increment when training from scratch)
 global_version = "v1.0" # Sub-version for tracking changes (increment when you use continue training)
 
 global_save_dir = f"./training/TD3/{global_folder}/" # Directory to save models
 global_best_model_path = os.path.join(global_save_dir, "best_model/best_model.zip")
-global_stats_path = os.path.join(global_save_dir, global_version, f"{global_version}_normalization.pkl")
-global_old_model_dir = "./training/TD3/Ori_V1.1/best_model/best_model.zip"
-global_old_stats_path = f"./training/TD3/Ori_V1.1/v1.0/{global_version}_normalization.pkl" # Make sure this path is correct for your old stats
+global_stats_path = os.path.join(global_save_dir, global_version, "vec_normalize.pkl")
+global_old_model_dir = "./training/TD3/Ori_V1.0/best_model/best_model.zip"
+global_old_stats_path = f"./training/TD3/Ori_V1.0/{global_version}/vec_normalize.pkl" # Make sure this path is correct for your old stats
 
 
 
@@ -148,7 +148,7 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         net_arch=optimized_hyperparams['policy_kwargs']['net_arch'],
         activation_fn=torch.nn.ReLU
         ),
-        verbose=1,
+        verbose=0,
         tensorboard_log=log_dir + "td3_tensorboard/",
         device="cuda" if torch.cuda.is_available() else "cpu"
     )
@@ -172,7 +172,7 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         deterministic=True,           # Use deterministic actions for evaluation
         render=False,
         callback_on_new_best=stop_callback,
-        verbose=1
+        verbose=0
     )
     
     # Save checkpoints during training
@@ -183,7 +183,7 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
     )
 
     custom_callback = TensorboardCallback(
-        verbose=1
+        verbose=0
     )
     
     # Combine callbacks
