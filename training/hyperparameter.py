@@ -90,7 +90,7 @@ def quick_gripper_search():
                                 storage="sqlite:///gripper_search.db",  # Persistent storage
                                 direction='maximize',
                                 load_if_exists=True)  # Resume if study already exists)
-    study.optimize(objective, n_trials=25) 
+    study.optimize(objective, n_trials=12) 
     
     return study.best_params
 

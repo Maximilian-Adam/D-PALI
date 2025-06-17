@@ -85,6 +85,17 @@ class DPALI_Hand(MujocoEnv):
         cube_ori = self._get_cube_orientation()
         target_ori = self._get_target_orientation()
 
+        cube_norm = np.linalg.norm(cube_ori)
+        target_norm = np.linalg.norm(target_ori)
+        if cube_norm < 1e-6: 
+            cube_quat = np.array([1.0, 0.0, 0.0, 0.0]) 
+        else:
+            cube_quat = cube_ori / cube_norm
+        if target_norm < 1e-6:
+            target_quat = np.array([1.0, 0.0, 0.0, 0.0])
+        else:
+            target_quat = target_ori / target_norm
+
         # Get contact information
         contacts, _ = self._check_contacts()
         contacts = np.array(contacts, dtype=np.float32)
@@ -95,8 +106,8 @@ class DPALI_Hand(MujocoEnv):
         for ee_pos in self._get_all_End_Effector_pos():
             ee_to_cube.extend(cube_pos - ee_pos)
 
-        cube_to_target_ori = target_ori - cube_ori
-        
+        quat_similarity = np.clip(np.abs(np.dot(cube_quat, target_quat)),0,1)
+
         obs = np.concatenate([
             joint_pos,
             joint_vel,
@@ -108,9 +119,7 @@ class DPALI_Hand(MujocoEnv):
             contacts,
             cube_ori,
             target_ori,
-            cube_to_target_ori
-        ])
-        
+            np.array([quat_similarity]).ravel()])
         return obs.astype(np.float32)
 
     def step(self, action):
@@ -198,91 +207,51 @@ class DPALI_Hand(MujocoEnv):
         cube_ori = self._get_cube_orientation()
         target_ori = self._get_target_orientation()
         contacts, table_contact = self._check_contacts()
-        
-        # # === PHASE 1: APPROACH PHASE ===
-        # # Encourage gripper to approach cube
-        # ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
-        # avg_ee_cube_dist = np.mean(ee_cube_distances)
-        
-        # # Dense approach reward (decreases as gripper gets closer)
-        # approach_reward = -avg_ee_cube_dist * 5.0
-        
-        # # === PHASE 2: CONTACT PHASE ===
-        # num_contacts = sum(contacts)
-        
-        # # Progressive contact rewards - encourage all 3 contacts
-        # if num_contacts == 0:
-        #     contact_reward = 0.0
-        # elif num_contacts == 1:
-        #     contact_reward = 20.0  # First contact bonus
-        # elif num_contacts == 2:
-        #     contact_reward = 50.0  # Two-finger grasp bonus
-        # elif num_contacts == 3:
-        #     contact_reward = 100.0  # Perfect three-finger grasp bonus
-        
-        # # === PHASE 3: MANIPULATION PHASE ===
-        # cube_target_dist = np.linalg.norm(cube_pos - target_pos)
-        
-        # manipulation_reward = -cube_target_dist * 100.0
-        
-        # # === PHASE 4: SUCCESS PHASE ===
-        # success_bonus = 0.0
-        # terminated = False
-        
-        # # Success criteria: cube very close to target with stable grasp
-        # if cube_target_dist < 0.002 and num_contacts >= 2:
-        #     success_bonus = 500.0
-        #     terminated = True
-        # elif cube_target_dist < 0.005 and num_contacts >= 2:
-        #     # Close to success bonus
-        #     success_bonus = 50.0
-        
-        # # === PENALTIES ===
-        # # Time penalty to encourage efficiency
-        # time_penalty = -0.5
-        
-        # # Total reward
-        # reward = (approach_reward + 
-        #           contact_reward + 
-        #           manipulation_reward +
-        #           success_bonus + 
-        #           time_penalty)
 
-        ###OLD REWARD FUNCTION###
-        # cube_target_dist = np.linalg.norm(cube_pos - target_pos)
-        # if cube_target_dist < 0.002 and sum(contacts) ==3:
-        #     success_bonus = 50.0
-        #     terminated = True
-        # else: 
-        #     success_bonus = 0.0
-        #     terminated = False
+        # Handle zero quaternions (initialization case)
+        cube_norm = np.linalg.norm(cube_ori)
+        target_norm = np.linalg.norm(target_ori)
 
-        # reward = -cube_target_dist - (3-sum(contacts)) * 0.05 + success_bonus
+        if cube_norm < 1e-6:  # Essentially zero
+            cube_quat = np.array([1.0, 0.0, 0.0, 0.0])  # Identity quaternion
+        else:
+            cube_quat = cube_ori / cube_norm
 
-        ### Orientation Old Reward Function ###
+        if target_norm < 1e-6:  # Essentially zero
+            target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # Identity quaternion
+        else:
+            target_quat = target_ori / target_norm
 
-        ## Encourage gripper to approach cube
-        ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
-        avg_ee_cube_dist = np.mean(ee_cube_distances)
+        ## Orientation Reward
+        quat_similarity = np.abs(np.dot(cube_quat, target_quat))
+        ori_angle = 2 * np.arccos(np.clip(quat_similarity, 0, 1.0))  # Convert to angle in radians
+        ori_reward = 5 * (1 - ori_angle / np.pi)
         
-        # Dense approach reward (decreases as gripper gets closer)
-        approach_reward = -avg_ee_cube_dist
+        ## Contact Reward
+        approach_reward = 0.0
+        num_contacts = sum(contacts)
+        if (num_contacts == 1) : contact_reward = 0
+        elif (num_contacts == 2) : contact_reward = 0.3
+        elif (num_contacts == 3) : contact_reward = 0.5
+        else: 
+            contact_reward = -0.2
+            ## Approach Reward (if no contacts))
+            ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
+            avg_ee_cube_dist = np.mean(ee_cube_distances)
+            approach_reward = -avg_ee_cube_dist * 0.3
 
-        cube_target_ori = np.linalg.norm(cube_ori - target_ori)
-        
+
+        ## Table Penalty
+        table_penalty = -5 if table_contact else 0.0
+
         terminated = False
         success_bonus = 0.0
 
-        if (cube_target_ori < 0.1 and sum(contacts) == 3 and table_contact == False):
-            success_bonus = 10
-            terminated = False # Set to this to disable success based termination
-
-        if (table_contact == True):
-            table_penalty = -5.0
-        else :
-            table_penalty = 0.0
-
-        reward = approach_reward - cube_target_ori - (3 - sum(contacts)) * 0.05 + success_bonus + table_penalty
+        if (ori_angle < 0.1 and num_contacts >= 2 and not table_contact):
+            success_bonus = 50.0
+            terminated = True 
+        
+        reward = ori_reward + contact_reward + approach_reward + table_penalty + success_bonus
 
         return reward, terminated
     
@@ -293,10 +262,28 @@ class DPALI_Hand(MujocoEnv):
         target_pos = self._get_target_pos()
         target_ori = self._get_target_orientation()
         cube_ori = self._get_cube_orientation()
+
+        # Handle zero quaternions (initialization case)
+        cube_norm = np.linalg.norm(cube_ori)
+        target_norm = np.linalg.norm(target_ori)
+
+        if cube_norm < 1e-6:  # Essentially zero
+            cube_quat = np.array([1.0, 0.0, 0.0, 0.0])  # Identity quaternion
+        else:
+            cube_quat = cube_ori / cube_norm
+
+        if target_norm < 1e-6:  # Essentially zero
+            target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # Identity quaternion
+        else:
+            target_quat = target_ori / target_norm
+        quat_similarity = np.clip(np.abs(np.dot(cube_quat, target_quat)), 0, 1.0)
+        ori_angle = 2 * np.arccos(quat_similarity)  # Convert to angle in radians
+
         
         return {
             'cube_target_distance': np.linalg.norm(cube_pos - target_pos),
-            'cube_target_orientation': np.linalg.norm(cube_ori - target_ori),
+            'cube_target_quat_similarity': quat_similarity,
+            'cube_target_orientation': ori_angle,
             'num_contacts': sum(contacts),
             'contacts': contacts,
             'cube_position': cube_pos,

@@ -1,6 +1,7 @@
 d_pali/
 training/logs/
 training/checkpoints/
+models/
 envs/__pycache__/
 D-Pali_venv/
 RL/

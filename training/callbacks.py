@@ -15,6 +15,9 @@ class TensorboardCallback(BaseCallback):
                 if 'cube_target_orientation' in info:
                     self.logger.record("custom/cube_target_orientation", info['cube_target_orientation'])
 
+                if 'cube_target_quat_similarity' in info:
+                    self.logger.record("custom/cube_target_quat_similarity", info['cube_target_quat_similarity'])
+
                 if 'cube_target_distance' in info:
                     self.logger.record("custom/cube_target_distance", info['cube_target_distance'])
 

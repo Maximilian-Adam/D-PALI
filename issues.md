@@ -50,3 +50,27 @@
     - Tweak reward 
     - Tweak noise action
     - Claude reccomendations
+
+## 12/06/25
+- All to do items from yesterday still remain
+- Current hyperparameters are looking good, they've got the reward down to -200 on average after 100k steps. 
+    - Based on this, some reward rebalancing is likely needed
+    - Mainly higher success bonus, and a higher (x10) approach reward and contact (x2). I think keeping the table penalty as is should be fine
+    - Seems like rebalancing the reward is more important than the hyperparameter searching, so I'll likely need to do that first, then research the hyperparameters.
+
+## 13/06/25 
+- Again, previous items still remain. I've completed the hyperparameter search, and the results (for the negative biased reward) are better in terms of contacts (Ori v2.0), but it doesn't really try to move the cube very much towards the target orientation. 
+    - Akin might be doing a hyperparameter serach with the positive biased reward, so if he's doing that, I can try experimenting with more training for this model to see if there's an improvement, and/or increasing the action noise, in order to get it to try and explore turning more. 
+
+## 14/06/25 
+- Ori v2.1 - Training continued for 500k steps, no changes
+- Ori v2.2 - Total of 2.5M steps, didn't turn much but good grip
+- Ori v3.0 - Turns pretty well, and has a consistent 2 finger grip without dropping (best so far)
+
+## 15/06/25
+- Ori v3.1 is pretty decent, but I think I'm still gonna try adjusting the reward function to be more responsive, and training a new model, as it's off slightly still
+
+## 16/06/25
+- Ori v4.0 has some major changes to reward function as well as environment (quaternion's difference calculated correctly), which has given some pretty good performance improvements.
+- The model is now more easily able to match a rotation. The only bit where it struggles seems to be when it collides with another finger 
+- Might begin some randomisation to the orientation
