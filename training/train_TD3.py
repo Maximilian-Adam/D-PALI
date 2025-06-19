@@ -34,7 +34,7 @@ global_reward_threshold = 350.0 # Reward threshold for stopping training
 
 global_initial_lr = 3e-4 
 global_final_lr = 1e-5  
-global_folder = "Ori_V1.3"# Name of folder for saving models (Increment when training from scratch)
+global_folder = "Ori_V2.0"# Name of folder for saving models (Increment when training from scratch)
 global_version = "v1.0" # Sub-version for tracking changes (increment when you use continue training)
 
 global_save_dir = f"./training/TD3/{global_folder}/" # Directory to save models

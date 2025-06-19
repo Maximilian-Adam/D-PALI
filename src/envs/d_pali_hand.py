@@ -18,7 +18,7 @@ class DPALI_Hand(MujocoEnv):
         "render_height": 1080,
         "target_pos": [0.015, 0.0, -0.15],
         "cube_initial_pos": [0.015, 0.0, -0.15],
-        "target_random_range": [-0.02, 0.02],
+        "target_random_range": [-0.04, 0.04],
         "reward": {
             "success_strict_dist": 0.002,
             "success_loose_dist": 0.005,
@@ -186,7 +186,8 @@ class DPALI_Hand(MujocoEnv):
             contacts,
             cube_ori,
             target_ori,
-            np.array([quat_similarity]).ravel()])
+            cube_to_target_ori])
+            #np.array([quat_similarity]).ravel()]),
         return obs.astype(np.float32)
 
     def step(self, action):
@@ -304,9 +305,9 @@ class DPALI_Hand(MujocoEnv):
 
         # weighted sum (weights sum to 1)
         shaped_reward = (
-            0.2 * approach_reward
-          + 0.3 * contact_reward
-          + 0.2 * manipulation_reward
+            0.1 * approach_reward
+          + 0.2 * contact_reward
+          + 0.4 * manipulation_reward
           + 0.3 * orientation_reward
         )
 
