@@ -33,15 +33,15 @@ global_reward_threshold = 350.0 # Reward threshold for stopping training
 
 
 global_initial_lr = 3e-4 
-global_final_lr = 1e-5
-global_folder = "Ori_V1.0" # Name of folder for saving models (Increment when training from scratch)
+global_final_lr = 1e-5  
+global_folder = "Ori_V1.3"# Name of folder for saving models (Increment when training from scratch)
 global_version = "v1.0" # Sub-version for tracking changes (increment when you use continue training)
 
 global_save_dir = f"./training/TD3/{global_folder}/" # Directory to save models
 global_best_model_path = os.path.join(global_save_dir, "best_model/best_model.zip")
 global_stats_path = os.path.join(global_save_dir, global_version, "vec_normalize.pkl")
-global_old_model_dir = "./training/TD3/Ori_V1.0/best_model/best_model.zip"
-global_old_stats_path = f"./training/TD3/Ori_V1.0/{global_version}/vec_normalize.pkl" # Make sure this path is correct for your old stats
+global_old_model_dir = f"./training/TD3/{global_folder}/best_model/best_model.zip"
+global_old_stats_path = f"./training/TD3/{global_folder}/{global_version}/vec_normalize.pkl" # Make sure this path is correct for your old stats
 
 
 
