@@ -2,7 +2,7 @@ from stable_baselines3 import TD3
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold, CheckpointCallback
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.noise import NormalActionNoise
+from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from envs import DPALI_Hand
 import warnings
 from glfw import GLFWError
@@ -68,13 +68,14 @@ def setup(mode="train", log_dir=None, max_episode_steps=500):
             norm_obs=True,           # Normalize observations
             norm_reward=True,        # Normalize rewards
             clip_obs=10.0,           # Clip normalized obs to ±10
-            clip_reward=10.0,        # Clip normalized rewards
-            gamma=0.99,              # For reward normalization
+            clip_reward=20.0,        # Clip normalized rewards
+            gamma=0.975,              # For reward normalization
             epsilon=1e-8
         )
     elif (mode == "continue"):
         env = VecNormalize.load(global_old_stats_path, env)
         env.training = True
+        env.norm_reward = True
 
     elif (mode == "test"):
         # Load normalization stats for testing
@@ -82,6 +83,23 @@ def setup(mode="train", log_dir=None, max_episode_steps=500):
             env = VecNormalize.load(global_stats_path, env)
             env.training = False
             env.norm_reward = False 
+    elif (mode == "eval_train"):
+        env = VecNormalize(
+            env,
+            training=False,  # Don't update stats during eval
+            norm_obs=True,
+            norm_reward=False,  # Don't normalize rewards during eval
+            clip_obs=10.0,
+            gamma=0.99,
+            epsilon=1e-8
+        )
+    elif (mode == "eval_continue"):
+        stats_dir = global_stats_path
+        env = VecNormalize.load(stats_dir, env)
+        env.training = False 
+        env.norm_reward = False
+
+   
     
     return env
 
@@ -104,14 +122,16 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
     env = setup("train", log_dir + "monitor/", max_episode_steps = global_max_episode_steps)
 
     # Create evaluation environment (separate from training)
-    eval_env = setup("train", max_episode_steps = global_max_episode_steps)
+    eval_env = setup("eval_train", max_episode_steps = global_max_episode_steps)
 
     # Add action noise for better exploration during training
     # TD3 uses noise for exploration - this is crucial for learning
     n_actions = env.action_space.shape[0]
-    action_noise = NormalActionNoise(
-        mean=np.zeros(n_actions), 
-        sigma=0.1 * np.ones(n_actions)
+    action_noise = OrnsteinUhlenbeckActionNoise(
+        mean=np.zeros(n_actions),
+        sigma=0.15 * np.ones(n_actions),    
+        theta=0.15,                         
+        dt=1e-2                              
     )
     
     # TD3 hyperparameters optimized for manipulation tasks
@@ -224,11 +244,19 @@ def continue_training_td3(model_path, total_timesteps, save_dir, log_dir="./trai
     os.makedirs(log_dir, exist_ok=True)
     
     # Set up environments
-    env = setup("train", log_dir + "monitor/", max_episode_steps = global_max_episode_steps)
-    eval_env = setup("train", max_episode_steps = global_max_episode_steps)
+    env = setup("continue", log_dir + "monitor/", max_episode_steps = global_max_episode_steps)
+    eval_env = setup("eval_continue", max_episode_steps = global_max_episode_steps)
     
     # Load the saved model
     model = TD3.load(model_path, env=env)
+
+    # Gonna keep this out for now
+    # new_lr = 0.0007593145723955295 / 2; # Static learning rate
+    # model.learning_rate = new_lr  # Update stored value
+    # for param_group in model.actor.optimizer.param_groups:
+    #     param_group['lr'] = new_lr  # Update actual optimizer
+    # for param_group in model.critic.optimizer.param_groups:
+    #     param_group['lr'] = new_lr  # Update actual optimizer
     
     # Set up callbacks
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold = global_reward_threshold, verbose=1)
@@ -383,26 +411,6 @@ def testing_td3(model_path, num_episodes=10, max_episode_steps = global_max_epis
             print(f"Average episode length: {np.mean(episode_lengths):.1f} ± {np.std(episode_lengths):.1f}")
             print(f"{'='*50}")
 
-def hyperparameter_search():
-    """Run a simple hyperparameter search for TD3."""
-    hyperparams = [
-        {"lr": 1e-3, "buffer_size": 1000000, "batch_size": 256, "learning_starts": 25000},
-        {"lr": 3e-4, "buffer_size": 500000, "batch_size": 128, "learning_starts": 10000},
-        {"lr": 1e-4, "buffer_size": 1000000, "batch_size": 512, "learning_starts": 50000},
-    ]
-    
-    for i, params in enumerate(hyperparams):
-        print(f"\n{'='*60}")
-        print(f"HYPERPARAMETER SEARCH - Configuration {i+1}/{len(hyperparams)}")
-        print(f"Parameters: {params}")
-        print(f"{'='*60}")
-        
-        file_path = f"./training/hyperparameter_search/td3_config_{i+1}"
-        training_td3(
-            total_timesteps=200000,  # Shorter training for search
-            file_path=file_path,
-            log_dir=f"./training/hyperparameter_search/logs_config_{i+1}/"
-        )
 
 if __name__ == "__main__":
     mode = global_mode  # "train", "test", "continue", or "hypersearch"

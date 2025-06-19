@@ -149,6 +149,17 @@ class DPALI_Hand(MujocoEnv):
         cube_ori = self._get_cube_orientation()
         target_ori = self._get_target_orientation()
 
+        cube_norm = np.linalg.norm(cube_ori)
+        target_norm = np.linalg.norm(target_ori)
+        if cube_norm < 1e-6: 
+            cube_quat = np.array([1.0, 0.0, 0.0, 0.0]) 
+        else:
+            cube_quat = cube_ori / cube_norm
+        if target_norm < 1e-6:
+            target_quat = np.array([1.0, 0.0, 0.0, 0.0])
+        else:
+            target_quat = target_ori / target_norm
+
         # Get contact information
         contacts, _ = self._check_contacts()
         contacts = np.array(contacts, dtype=np.float32)
@@ -175,9 +186,7 @@ class DPALI_Hand(MujocoEnv):
             contacts,
             cube_ori,
             target_ori,
-            cube_to_target_ori
-        ])
-        
+            np.array([quat_similarity]).ravel()])
         return obs.astype(np.float32)
 
     def step(self, action):
@@ -205,9 +214,13 @@ class DPALI_Hand(MujocoEnv):
         target_pos = np.array([0.015 + target_offset, target_offset, -0.15 + target_offset], dtype=np.float32)
         self.data.xpos[self._target_id] = target_pos
 
+        rot_axis = [0.0, 0.0, 1.0] # Z-axis rotation
+        angle = np.random.uniform(0, np.pi) 
+        rotation = np.zeros(4)
+        mujoco.mju_axisAngle2Quat(rotation, rot_axis, angle)
         # Reset target orientation
-        target_ori = np.array([0.0, 0.0, 0.0, 1.0])  # Identity quaternion
-        self.data.xquat[self._target_id] = target_ori
+        target_ori = rotation  # Identity quaternion
+        self.model.body_quat[self._target_id] = target_ori
         
         mujoco.mj_forward(self.model, self.data)
         return self._get_obs()
@@ -335,10 +348,28 @@ class DPALI_Hand(MujocoEnv):
         target_pos = self._get_target_pos()
         target_ori = self._get_target_orientation()
         cube_ori = self._get_cube_orientation()
+
+        # Handle zero quaternions (initialization case)
+        cube_norm = np.linalg.norm(cube_ori)
+        target_norm = np.linalg.norm(target_ori)
+
+        if cube_norm < 1e-6:  # Essentially zero
+            cube_quat = np.array([1.0, 0.0, 0.0, 0.0])  # Identity quaternion
+        else:
+            cube_quat = cube_ori / cube_norm
+
+        if target_norm < 1e-6:  # Essentially zero
+            target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # Identity quaternion
+        else:
+            target_quat = target_ori / target_norm
+        quat_similarity = np.clip(np.abs(np.dot(cube_quat, target_quat)), 0, 1.0)
+        ori_angle = 2 * np.arccos(quat_similarity)  # Convert to angle in radians
+
         
         return {
             'cube_target_distance': np.linalg.norm(cube_pos - target_pos),
-            'cube_target_orientation': np.linalg.norm(cube_ori - target_ori),
+            'cube_target_quat_similarity': quat_similarity,
+            'cube_target_orientation': ori_angle,
             'num_contacts': sum(contacts),
             'contacts': contacts,
             'cube_position': cube_pos,
