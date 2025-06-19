@@ -23,7 +23,7 @@ warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
 global_mode = "test"
-global_total_timesteps = 1500000 # Total timesteps for training
+global_total_timesteps = 3000000 # Total timesteps for training
 global_eval_freq = 250000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
 global_save_freq = 100000 # Frequency of saving model checkpoints (in steps)
@@ -32,11 +32,11 @@ global_reward_threshold = 2500.0 # Reward threshold for stopping training
 global_initial_lr = 0.0007593145723955295 
 global_final_lr = 1e-4
 global_folder = "Ori_V4.0" # Name of folder for saving models (Increment when training from scratch)
-global_version = "v4.0" # Sub-version for tracking changes (increment when you use continue training)
+global_version = "v4.3" # Sub-version for tracking changes (increment when you use continue training)
 global_save_dir = "./models/" + global_folder + "/" + global_version # Directory to save models
 global_stats_dir = "./models/" + global_folder + "/" + global_version + "_normalization.pkl" # Directory to save normalization stats
-global_old_stats_dir =  "./models/" + global_folder + "/v3.0_normalization.pkl"  # Directory for old normalization stats (if continuing training)
-global_old_dir = "./models/" + global_folder + "/v3.0"
+global_old_stats_dir =  "./models/" + global_folder + "/v4.0_normalization.pkl"  # Directory for old normalization stats (if continuing training)
+global_old_dir = "./models/" + global_folder + "/v4.0"
 
 
 
@@ -130,12 +130,12 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
     model = TD3(
         "MlpPolicy",
         env,
-        learning_rate=global_initial_lr, # Learning rate schedule
+        learning_rate=lr_schedule(global_initial_lr,global_final_lr), # Learning rate schedule
         buffer_size=1000000,          # Large replay buffer for better sample efficiency  
         learning_starts=10000,        # Start learning after collecting some experience
         batch_size=256,               # Batch size for training
         tau=0.005,                    # Soft update coefficient for target networks
-        gamma=0.975,     # Discount factor
+        gamma=0.975,                  # Discount factor
         train_freq=(4, "step"),       # Train after every 4 steps
         gradient_steps=4,             # Do as many gradient steps as environment steps
         action_noise=action_noise,    # Exploration noise

@@ -74,3 +74,23 @@
 - Ori v4.0 has some major changes to reward function as well as environment (quaternion's difference calculated correctly), which has given some pretty good performance improvements.
 - The model is now more easily able to match a rotation. The only bit where it struggles seems to be when it collides with another finger 
 - Might begin some randomisation to the orientation
+
+## 17/06/25
+- Ori v4.1 is training with randomisation now, hopefully the grip will improve here too
+    - Update, did not. It sort of works, but still doesn't really match it, and needs the 3rd finger gripping
+- Ori v4.2 will be a fresh model with higher success reward to skew results.
+    - Pretty good at rotations (even if random) but still only using 2 fingers
+- Action scale was also severly limited (1/3 of what it should be), need to likely restart training to accomodate this change 
+    - Should also make the position control easier
+    - 3 finger grasp should also be rewarded more heavily in next model
+
+## 18/06/25
+- Ori v4.3 training as described above
+- Still refuses to hold with 3 fingers, but seems to be able to match the orientation better, only thing it messes up now is rotataing it in a different axis
+
+## 19/06/25
+- Updated model for more overlapping workspace
+- Running new v5.0 with new model
+- May need to switch to old link for long link
+
+

@@ -124,7 +124,7 @@ class DPALI_Hand(MujocoEnv):
 
     def step(self, action):
         self.current_step += 1
-        scaled_action = action * np.pi/3
+        scaled_action = action * np.pi
         self.do_simulation(scaled_action, self.frame_skip)
         obs = self._get_obs()
         reward, terminated = self._compute_reward()
@@ -145,13 +145,13 @@ class DPALI_Hand(MujocoEnv):
         if cube_jnt_addr >= 0:  # Check if the body has joints
             self.data.qpos[cube_jnt_addr:cube_jnt_addr + 3] = self._cube_initial_pos
         
-        # Reset target position
-        # target_y = self.np_random.uniform(-0.04, 0.04)
-        # target_pos = np.array([0.0195, -0.04, -0.14])
-        # self.model.body_pos[self._target_id] = target_pos
+        rot_axis = [0.0, 0.0, 1.0] # Z-axis rotation
+        angle = np.random.uniform(0, np.pi) 
+        rotation = np.zeros(4)
+        mujoco.mju_axisAngle2Quat(rotation, rot_axis, angle)
 
         # Reset target orientation
-        target_ori = np.array([0.0, 0.0, 0.0, 1.0])  # Identity quaternion
+        target_ori = rotation  # Identity quaternion
         self.model.body_quat[self._target_id] = target_ori
         
         # Forward the simulation to apply changes
@@ -232,13 +232,14 @@ class DPALI_Hand(MujocoEnv):
         num_contacts = sum(contacts)
         if (num_contacts == 1) : contact_reward = 0
         elif (num_contacts == 2) : contact_reward = 0.3
-        elif (num_contacts == 3) : contact_reward = 0.5
+        elif (num_contacts == 3) : contact_reward = 1.5
         else: 
             contact_reward = -0.2
-            ## Approach Reward (if no contacts))
-            ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
-            avg_ee_cube_dist = np.mean(ee_cube_distances)
-            approach_reward = -avg_ee_cube_dist * 0.3
+
+        ## Approach Reward
+        ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
+        avg_ee_cube_dist = np.mean(ee_cube_distances)
+        approach_reward = -avg_ee_cube_dist * 0.3
 
 
         ## Table Penalty
@@ -247,8 +248,8 @@ class DPALI_Hand(MujocoEnv):
         terminated = False
         success_bonus = 0.0
 
-        if (ori_angle < 0.1 and num_contacts >= 2 and not table_contact):
-            success_bonus = 50.0
+        if (ori_angle < 0.1 and num_contacts == 3 and not table_contact):
+            success_bonus = 500.0
             terminated = True 
         
         reward = ori_reward + contact_reward + approach_reward + table_penalty + success_bonus
