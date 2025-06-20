@@ -6,7 +6,7 @@
               balanceinertia="true"
               discardvisual="false"
               autolimits="true"/>
-    <option solver="PGS" impratio="0.5" cone="elliptic" tolerance="1e-7" noslip_iterations="10000" timestep="0.002" gravity = "0 0 -9.81">
+    <option solver="Newton" impratio="1" noslip_iterations="20" timestep="0.002" gravity = "0 0 -9.81">
         <flag warmstart="enable"/>
     </option>
 

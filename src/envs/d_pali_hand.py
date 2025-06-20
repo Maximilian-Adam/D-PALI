@@ -22,7 +22,7 @@ class DPALI_Hand(MujocoEnv):
         "reward": {
             "success_strict_dist": 0.002,
             "success_loose_dist": 0.005,
-            "time_penalty": -0.5,
+            "time_penalty": -0.001,
             "normalisation_scale": 1.0, 
         },
     }
@@ -301,13 +301,20 @@ class DPALI_Hand(MujocoEnv):
 
         # (4) contacts – encourage a stable 3-finger grasp
         num_contacts       = sum(contacts)           
-        contact_reward     = num_contacts / 3.0       # 0.0‥1.0
+        if num_contacts == 0:
+            contact_reward = 0.0
+        elif num_contacts == 1:
+            contact_reward = 0.05        
+        elif num_contacts == 2:
+            contact_reward = 0.2
+        elif num_contacts == 3:
+            contact_reward = 1
 
         # weighted sum (weights sum to 1)
         shaped_reward = (
             0.1 * approach_reward
-          + 0.2 * contact_reward
-          + 0.4 * manipulation_reward
+          + 0.3 * contact_reward
+          + 0.3 * manipulation_reward
           + 0.3 * orientation_reward
         )
 
@@ -318,7 +325,7 @@ class DPALI_Hand(MujocoEnv):
                 and ori_err < 0.05
                 and num_contacts >= 2
                 and not table_contact):
-            success_bonus = 1.0   
+            success_bonus = 500   
             terminated    = True
 
         # Severe penalty for dropping or touching the table
@@ -331,15 +338,11 @@ class DPALI_Hand(MujocoEnv):
         total_reward = (
               shaped_reward
             + success_bonus
-            + drop_penalty       # dominates when the cube is dropped
+            + drop_penalty     
             + time_penalty
         )
 
-        # Normalise to [-1, 1]
-        NORMALISE_SCALE = cfg["normalisation_scale"]
-        normalised_reward = float(np.tanh(total_reward / NORMALISE_SCALE))
-
-        return normalised_reward, terminated
+        return total_reward, terminated
 
     
     def _get_info(self):

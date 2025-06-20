@@ -25,11 +25,11 @@ warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
 global_mode = "test"
-global_total_timesteps = 500000 # Total timesteps for training
+global_total_timesteps = 1500000 # Total timesteps for training
 global_eval_freq = 50000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
-global_save_freq = 50000 # Frequency of saving model checkpoints (in steps)
-global_reward_threshold = 350.0 # Reward threshold for stopping training
+global_save_freq = 500000 # Frequency of saving model checkpoints (in steps)
+global_reward_threshold = 2500.0 # Reward threshold for stopping training
 
 
 global_initial_lr = 3e-4 
@@ -152,7 +152,7 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
     model = TD3(
         "MlpPolicy",
         env,
-        learning_rate=optimized_hyperparams['learning_rate'],    # Learning rate 
+        learning_rate=lr_schedule(global_initial_lr, global_final_lr),    # Learning rate 
         buffer_size=int(optimized_hyperparams['buffer_size']),          # Large replay buffer for better sample efficiency  
         learning_starts=10000,        # Start learning after collecting some experience
         batch_size=optimized_hyperparams['batch_size'],               # Batch size for training
@@ -202,12 +202,12 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         name_prefix="td3_checkpoint"
     )
 
-    custom_callback = TensorboardCallback(
-        verbose=0
-    )
+    #custom_callback = TensorboardCallback(
+    #    verbose=0
+    #)
     
     # Combine callbacks
-    callbacks = [checkpoint_callback, eval_callback, custom_callback]
+    callbacks = [checkpoint_callback, eval_callback]
 
     print('*************TD3 Training started*************')
     print(f"Device: {model.device}")
