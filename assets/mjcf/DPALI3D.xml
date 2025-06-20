@@ -15,6 +15,8 @@
 
     <worldbody>
 
+    
+
       <body name="workspace" pos="0 0 0" euler="0 1.5708 0">    <!-- rotate 90° about Y -->
             <body pos="0 0 0" euler="0 0 -1.5708">  <!-- then 90° about Z -->
                 <!--adds the floor and platform-->
@@ -33,10 +35,12 @@
             </body>
         </body>
 
+        
+
         <!--Sets up cube -->
         <body name="object" pos=".014 0 -.15" euler="0 0 1.5708 ">
             <joint name="object:joint" type="free" damping="0.01"/>
-            <geom name="object" class='object' size="0.024 0.024 0.024" rgba="0.125 0.785 0.785 0.5" mass="0.02608" friction="1 0.005 0.0001" />
+            <geom name="object" class='object' size="0.024 0.024 0.024" rgba="0.125 0.785 0.785 0.5" mass="0.02608"/>
             <geom name="object:center1" type="cylinder" pos="0 0 0.0015" size="0.002 0.024" class="visual" rgba="0.25 0.22 0.22 1" group="1"/>
             <geom name="object_arrow" type="box" pos="0 0 0.001" size=".002 .012 0.024" rgba="1 0 0 1" class="visual"
                       group="1"/>
@@ -77,6 +81,7 @@
 
         <light directional="true" diffuse="0.3 0.3 0.3" specular="0.3 0.3 0.3" castshadow="true" pos="0.1 0.1 0.1"
                dir="0.2 0.1 -0.1"/>
+
     </worldbody>
 
 </mujoco>
