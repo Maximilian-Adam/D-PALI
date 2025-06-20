@@ -203,12 +203,12 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         name_prefix="td3_checkpoint"
     )
 
-    #custom_callback = TensorboardCallback(
-    #    verbose=0
-    #)
+    custom_callback = TensorboardCallback(
+        verbose=0
+    )
     
     # Combine callbacks
-    callbacks = [checkpoint_callback, eval_callback]
+    callbacks = [checkpoint_callback, eval_callback, custom_callback]
 
     print('*************TD3 Training started*************')
     print(f"Device: {model.device}")
