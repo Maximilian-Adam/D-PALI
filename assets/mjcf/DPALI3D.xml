@@ -17,8 +17,8 @@
 
     
 
-      <body name="workspace" pos="0 0 0" euler="0 1.5708 0">    <!-- rotate 90° about Y -->
-            <body pos="0 0 0" euler="0 0 -1.5708">  <!-- then 90° about Z -->
+      <body name="workspace" pos="0 0 0" euler="0 1.5708 -1.5708">    <!-- rotate 90° about Y -->
+            <!--<body pos="0 0 0" euler="0 0 -1.5708"> --> <!-- then 90° about Z -->
                 <!--adds the floor and platform-->
                 
                 <!--<geom name="floor" pos="0 0 -0.1" size="15 15 1" type="plane" material="matplane" margin="0.001" condim="3" friction="1 0.005 0.0001" />
@@ -32,13 +32,13 @@
 
                 <!--This line adds the robot-->
                 <include file="Gripper3D.xml"/>
-            </body>
+            <!--</body>-->
         </body>
 
         
 
         <!--Sets up cube -->
-        <body name="object" pos=".014 0 -.15" euler="0 0 1.5708 ">
+        <body name="object" pos="0.015 0 -0.15" euler="0 0 1.5708 ">
             <joint name="object:joint" type="free" damping="0.01"/>
             <geom name="object" class='object' size="0.024 0.024 0.024" rgba="0.125 0.785 0.785 0.5" mass="0.02608"/>
             <geom name="object:center1" type="cylinder" pos="0 0 0.0015" size="0.002 0.024" class="visual" rgba="0.25 0.22 0.22 1" group="1"/>
@@ -62,8 +62,7 @@
 -->
 
         <!-- Sets up target (shadow) cube-->
-        <body name="target" pos="0.015 0.0 -0.15" euler="0 0 1.5708 ">
-            <!-- <joint name="target:joint" type="free" damping="0.01"/> -->
+        <body name="target" pos="0.015 0.0 -0.15" euler="0 0 1.5708" mocap="true">
             <geom name="target" type="box" size="0.024 0.024 0.024" rgba="0.8 0 0.8 0.2" group="1" condim="4" contype="0"
                   conaffinity="0"/>
             <body name="target:arrow_marker" pos="0 0 0">

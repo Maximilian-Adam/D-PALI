@@ -53,7 +53,7 @@ def setup(mode="train", log_dir=None, max_episode_steps=500):
                    render_mode=_render_mode, 
                    max_episode_steps=max_episode_steps,
                    frame_skip=frame_skip,
-                   seed=20)
+                   seed=None)
     
     if log_dir and (mode == "train" or mode == "continue"):
         env = Monitor(env, log_dir)
@@ -368,6 +368,7 @@ def testing_td3(model_path, num_episodes=10, max_episode_steps = global_max_epis
                 time.sleep(1/60)  # Control rendering speed
                 
                 if done:
+                    time.sleep(3)
                     break
             
             # Episode summary

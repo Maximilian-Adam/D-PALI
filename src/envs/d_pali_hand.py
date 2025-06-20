@@ -18,7 +18,7 @@ class DPALI_Hand(MujocoEnv):
         "render_height": 1080,
         "target_pos": [0.015, 0.0, -0.15],
         "cube_initial_pos": [0.015, 0.0, -0.15],
-        "target_random_range": [-0.08, 0.08],
+        "target_random_range": [-0.06, 0.06],
         "reward": {
             "success_strict_dist": 0.01,
             "success_loose_dist": 0.005,
@@ -116,6 +116,7 @@ class DPALI_Hand(MujocoEnv):
         # Convert positions to numpy arrays
         self._target_pos = np.array(config['target_pos'], dtype=np.float32)
         self._cube_initial_pos = np.array(config['cube_initial_pos'], dtype=np.float32)
+        self._workspace_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, b"workspace")
 
         # Episode counter
         self.current_step = 0
@@ -201,29 +202,32 @@ class DPALI_Hand(MujocoEnv):
         return obs, reward, terminated, truncated, info
 
     def reset_model(self):
-        noise = self.np_random.uniform(-0.02, 0.02, size=self.model.nq)
-        self.set_state(self.init_qpos + noise, self.init_qvel * 0)
+        mujoco.mj_resetData(self.model, self.data)
 
-        # Set cube to fixed initial position
         cube_jnt_addr = self.model.body_jntadr[self._cube_id]
-        if cube_jnt_addr >= 0:  # Check if the body has joints
+        if cube_jnt_addr >= 0:
             self.data.qpos[cube_jnt_addr:cube_jnt_addr + 3] = self._cube_initial_pos
-        
-        # Reset target position
-        t_min, t_max = self.config['target_random_range']
-        target_offset = self.np_random.uniform(t_min, t_max)
-        target_pos = np.array([0.015 + target_offset, target_offset, -0.15], dtype=np.float32)
-        self.data.xpos[self._target_id] = target_pos
+            self.data.qpos[cube_jnt_addr + 3:cube_jnt_addr + 7] = [1, 0, 0, 0]
 
-        rot_axis = [0.0, 0.0, 1.0] # Z-axis rotation
-        angle = np.random.uniform(0, np.pi) 
-        rotation = np.zeros(4)
-        mujoco.mju_axisAngle2Quat(rotation, rot_axis, angle)
-        # Reset target orientation
-        target_ori = rotation  # Identity quaternion
-        self.model.body_quat[self._target_id] = target_ori
-        
+        mocap_id = self._target_id  
+        if mocap_id != -1 and self.model.body_mocapid[mocap_id] != -1:
+            mocap_addr = self.model.body_mocapid[mocap_id]
+
+            cube_start_pos = self._cube_initial_pos.copy()
+            t_min, t_max = self.config['target_random_range']
+            offset = self.np_random.uniform(t_min, t_max, size=2)
+            target_pos = cube_start_pos + np.array([offset[0], offset[1], 0])
+            self.data.mocap_pos[mocap_addr] = target_pos # Use mocap_pos
+
+            rot_axis = [0.0, 0.0, 1.0]
+            angle = self.np_random.uniform(0, 2*np.pi)
+            target_ori = np.zeros(4)
+            mujoco.mju_axisAngle2Quat(target_ori, rot_axis, angle)
+            self.data.mocap_quat[mocap_addr] = target_ori
+
         mujoco.mj_forward(self.model, self.data)
+
+
         return self._get_obs()
 
     def _get_all_End_Effector_pos(self) -> np.ndarray:
