@@ -18,9 +18,9 @@ class DPALI_Hand(MujocoEnv):
         "render_height": 1080,
         "target_pos": [0.015, 0.0, -0.15],
         "cube_initial_pos": [0.015, 0.0, -0.15],
-        "target_random_range": [-0.04, 0.04],
+        "target_random_range": [-0.08, 0.08],
         "reward": {
-            "success_strict_dist": 0.002,
+            "success_strict_dist": 0.01,
             "success_loose_dist": 0.005,
             "time_penalty": -0.001,
             "normalisation_scale": 1.0, 
@@ -212,7 +212,7 @@ class DPALI_Hand(MujocoEnv):
         # Reset target position
         t_min, t_max = self.config['target_random_range']
         target_offset = self.np_random.uniform(t_min, t_max)
-        target_pos = np.array([0.015 + target_offset, target_offset, -0.15 + target_offset], dtype=np.float32)
+        target_pos = np.array([0.015 + target_offset, target_offset, -0.15], dtype=np.float32)
         self.data.xpos[self._target_id] = target_pos
 
         rot_axis = [0.0, 0.0, 1.0] # Z-axis rotation
@@ -286,10 +286,14 @@ class DPALI_Hand(MujocoEnv):
         target_ori  = self._get_target_orientation()
         contacts, table_contact = self._check_contacts()
 
+        CUBE_RADIUS = 0.024
+        MAX_APPROACH_DIST = 0.15
+
         # --------------- dense sub-rewards (range ≈ [0, 1]) --------------
         # (1) approach – bring fingertips close to the cube
-        avg_ee_cube_dist   = np.mean([np.linalg.norm(p - cube_pos) for p in ee_pos])
-        approach_reward    = 1.0 - np.clip(avg_ee_cube_dist / 0.15, 0.0, 1.0)
+        avg_ee_cube_dist = np.mean([np.linalg.norm(p - cube_pos) for p in ee_pos])
+        effective_dist = np.maximum(0, avg_ee_cube_dist - CUBE_RADIUS)
+        approach_reward = 1.0 - np.clip(effective_dist / (MAX_APPROACH_DIST - CUBE_RADIUS), 0.0, 1.0)
 
         # (2) manipulation – move the cube towards the target position
         cube_target_dist   = np.linalg.norm(cube_pos - target_pos)
@@ -322,10 +326,10 @@ class DPALI_Hand(MujocoEnv):
         terminated    = False
         success_bonus = 0.0
         if (cube_target_dist < cfg["success_strict_dist"]
-                and ori_err < 0.05
-                and num_contacts >= 2
+                and ori_err < 0.15
+                and num_contacts == 3
                 and not table_contact):
-            success_bonus = 500   
+            success_bonus = 25   
             terminated    = True
 
         # Severe penalty for dropping or touching the table

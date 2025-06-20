@@ -24,7 +24,7 @@ import traceback
 warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
-global_mode = "test"
+global_mode = "train"
 global_total_timesteps = 1500000 # Total timesteps for training
 global_eval_freq = 50000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
@@ -34,7 +34,7 @@ global_reward_threshold = 2500.0 # Reward threshold for stopping training
 
 global_initial_lr = 3e-4 
 global_final_lr = 1e-5  
-global_folder = "Ori_V2.0"# Name of folder for saving models (Increment when training from scratch)
+global_folder = "Ori_V2.1"# Name of folder for saving models (Increment when training from scratch)
 global_version = "v1.0" # Sub-version for tracking changes (increment when you use continue training)
 
 global_save_dir = f"./training/TD3/{global_folder}/" # Directory to save models
@@ -48,7 +48,7 @@ global_old_stats_path = f"./training/TD3/{global_folder}/{global_version}/vec_no
 def setup(mode="train", log_dir=None, max_episode_steps=500):
     """Set up the environment with optional monitoring."""
     _render_mode = "human" if mode == "test" else None
-    frame_skip = 5 if mode == "test" else 20  # Double frame skip for training
+    frame_skip = 5 if mode == "test" else frame_skip = 10  #20 # Double frame skip for training
     env = gym.make("DPALIHand-v0", 
                    render_mode=_render_mode, 
                    max_episode_steps=max_episode_steps,
@@ -141,7 +141,7 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
     'batch_size': 512,
     'buffer_size': 1000000,
     'tau': 0.005,
-    'gamma': 0.99,
+    'gamma': 0.98,
     'policy_kwargs': {
         'net_arch': {
             'pi': [512, 512, 256],
@@ -165,7 +165,8 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         target_policy_noise=0.2,      # Noise added to target policy
         target_noise_clip=0.5,        # Clip target noise
         policy_kwargs=dict(
-        net_arch=optimized_hyperparams['policy_kwargs']['net_arch'],
+        #net_arch=optimized_hyperparams['policy_kwargs']['net_arch'],
+        net_arch=[256, 256, 256],
         activation_fn=torch.nn.ReLU
         ),
         verbose=0,
