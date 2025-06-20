@@ -24,8 +24,8 @@ import traceback
 warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
-global_mode = "train"
-global_total_timesteps = 1500000 # Total timesteps for training
+global_mode = "test"
+global_total_timesteps = 1000000 # Total timesteps for training
 global_eval_freq = 50000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
 global_save_freq = 500000 # Frequency of saving model checkpoints (in steps)
@@ -48,7 +48,7 @@ global_old_stats_path = f"./training/TD3/{global_folder}/{global_version}/vec_no
 def setup(mode="train", log_dir=None, max_episode_steps=500):
     """Set up the environment with optional monitoring."""
     _render_mode = "human" if mode == "test" else None
-    frame_skip = 5 if mode == "test" else frame_skip = 10  #20 # Double frame skip for training
+    frame_skip = 5 if mode == "test" else 10  #20 # Double frame skip for training
     env = gym.make("DPALIHand-v0", 
                    render_mode=_render_mode, 
                    max_episode_steps=max_episode_steps,
@@ -200,11 +200,11 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
     checkpoint_callback = CheckpointCallback(
         save_freq = global_save_freq,
         save_path=os.path.join(save_dir, "checkpoints/"),
-        name_prefix="td3_checkpoint"
+        name_prefix="td3_checkpoint",
     )
 
     custom_callback = TensorboardCallback(
-        verbose=0
+        verbose=1
     )
     
     # Combine callbacks

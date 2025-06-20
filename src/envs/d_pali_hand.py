@@ -306,17 +306,24 @@ class DPALI_Hand(MujocoEnv):
         # (4) contacts – encourage a stable 3-finger grasp
         num_contacts       = sum(contacts)           
         if num_contacts == 0:
-            contact_reward = 0.0
+            contact_reward = -0.2
         elif num_contacts == 1:
-            contact_reward = 0.05        
+            contact_reward = 0        
         elif num_contacts == 2:
             contact_reward = 0.2
         elif num_contacts == 3:
             contact_reward = 1
 
+        centering_reward = 0.0
+        if num_contacts == 3:
+            ee_centroid = np.mean(ee_pos, axis=0)
+            centering_error = np.linalg.norm(ee_centroid - cube_pos)
+            centering_reward = 1.0 - np.clip(centering_error / 0.02, 0.0, 1.0)
+
         # weighted sum (weights sum to 1)
         shaped_reward = (
             0.1 * approach_reward
+          + 0.2 * centering_reward
           + 0.3 * contact_reward
           + 0.3 * manipulation_reward
           + 0.3 * orientation_reward
@@ -335,6 +342,15 @@ class DPALI_Hand(MujocoEnv):
         # Severe penalty for dropping or touching the table
         drop_penalty  = -1.0 if table_contact else 0.0
 
+
+        penetration_penalty = 0.0
+        PENALTY_SCALE = 20.0 
+        for p in ee_pos:
+            dist = np.linalg.norm(p - cube_pos)
+            if dist < CUBE_RADIUS:
+                penetration_depth = CUBE_RADIUS - dist
+                penetration_penalty -= PENALTY_SCALE * penetration_depth
+
         # Small per-step time penalty to encourage speed
         time_penalty  = cfg["time_penalty"] 
 
@@ -344,6 +360,7 @@ class DPALI_Hand(MujocoEnv):
             + success_bonus
             + drop_penalty     
             + time_penalty
+            + penetration_penalty
         )
 
         return total_reward, terminated
