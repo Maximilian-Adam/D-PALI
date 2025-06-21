@@ -216,7 +216,7 @@ class DPALI_Hand(MujocoEnv):
             cube_start_pos = self._cube_initial_pos.copy()
             t_min, t_max = self.config['target_random_range']
             offset = self.np_random.uniform(t_min, t_max, size=2)
-            target_pos = cube_start_pos + np.array([offset[0], offset[1], 0])
+            target_pos = cube_start_pos #+ np.array([offset[0], offset[1], 0])
             self.data.mocap_pos[mocap_addr] = target_pos # Use mocap_pos
 
             rot_axis = [0.0, 0.0, 1.0]
@@ -291,7 +291,7 @@ class DPALI_Hand(MujocoEnv):
         contacts, table_contact = self._check_contacts()
 
         CUBE_RADIUS = 0.024
-        MAX_APPROACH_DIST = 0.15
+        MAX_APPROACH_DIST = 0.1
 
         # --------------- dense sub-rewards (range ≈ [0, 1]) --------------
         # (1) approach – bring fingertips close to the cube
@@ -304,8 +304,9 @@ class DPALI_Hand(MujocoEnv):
         manipulation_reward = 1.0 - np.clip(cube_target_dist / 0.10, 0.0, 1.0)
 
         # (3) orientation – align cube orientation to the target
-        ori_err            = self.quat_angle(cube_ori, target_ori)
-        orientation_reward = 1.0 - np.clip(ori_err / np.pi, 0.0, 1.0)
+        ori_err = self.quat_angle(cube_ori, target_ori)
+        scaled_err = np.clip(ori_err / np.pi, 0.0, 1.0)
+        orientation_reward = 1.0 - (scaled_err ** 2)
 
         # (4) contacts – encourage a stable 3-finger grasp
         num_contacts       = sum(contacts)           
@@ -328,9 +329,9 @@ class DPALI_Hand(MujocoEnv):
         shaped_reward = (
             0.1 * approach_reward
           + 0.2 * centering_reward
-          + 0.3 * contact_reward
-          + 0.3 * manipulation_reward
-          + 0.3 * orientation_reward
+          + 0.2 * contact_reward
+          #+ 0.3 * manipulation_reward
+          + 0.5 * orientation_reward
         )
 
         # --------------- sparse bonuses & penalties ----------------------
@@ -377,6 +378,7 @@ class DPALI_Hand(MujocoEnv):
         target_pos = self._get_target_pos()
         target_ori = self._get_target_orientation()
         cube_ori = self._get_cube_orientation()
+        ori_diff = self.quat_angle(cube_ori, target_ori)
 
         # Handle zero quaternions (initialization case)
         cube_norm = np.linalg.norm(cube_ori)
@@ -398,7 +400,7 @@ class DPALI_Hand(MujocoEnv):
         return {
             'cube_target_distance': np.linalg.norm(cube_pos - target_pos),
             'cube_target_quat_similarity': quat_similarity,
-            'cube_target_orientation': ori_angle,
+            'cube_target_orientation': ori_diff,
             'num_contacts': sum(contacts),
             'contacts': contacts,
             'cube_position': cube_pos,
