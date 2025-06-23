@@ -24,17 +24,17 @@ import traceback
 warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
-global_mode = "test"
+global_mode = "train"
 global_total_timesteps = 1000000 # Total timesteps for training
 global_eval_freq = 50000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
-global_save_freq = 5000 # Frequency of saving model checkpoints (in steps)
+global_save_freq = 500000 # Frequency of saving model checkpoints (in steps)
 global_reward_threshold = 2500.0 # Reward threshold for stopping training
 
 
 global_initial_lr = 0.0007593145723955295 
 global_final_lr = 1e-4
-global_folder = "Ori_V3.0"# Name of folder for saving models (Increment when training from scratch)
+global_folder = "Ori_V3.1"# Name of folder for saving models (Increment when training from scratch)
 global_version = "v1.0" # Sub-version for tracking changes (increment when you use continue training)
 
 global_save_dir = f"./training/TD3/{global_folder}/" # Directory to save models
@@ -43,7 +43,8 @@ global_stats_path = os.path.join(global_save_dir, global_version, "vec_normalize
 global_old_model_dir = f"./training/TD3/{global_folder}/best_model/best_model.zip"
 global_old_stats_path = f"./training/TD3/{global_folder}/{global_version}/vec_normalize.pkl" # Make sure this path is correct for your old stats
 
-
+global_expert_obs_path = "./training/expert_data/expert_observations.npy"
+global_expert_actions_path = "./training/expert_data/expert_actions.npy"
 
 def setup(mode="train", log_dir=None, max_episode_steps=500):
     """Set up the environment with optional monitoring."""
@@ -154,7 +155,7 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         env,
         learning_rate=lr_schedule(global_initial_lr, global_final_lr),    # Learning rate 
         buffer_size=int(optimized_hyperparams['buffer_size']),          # Large replay buffer for better sample efficiency  
-        learning_starts=10000,        # Start learning after collecting some experience
+        learning_starts=1000,        # Start learning after collecting some experience
         batch_size=optimized_hyperparams['batch_size'],               # Batch size for training
         tau=optimized_hyperparams['tau'],
         gamma=optimized_hyperparams['gamma'],                   # Discount factor
@@ -173,6 +174,39 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         tensorboard_log=log_dir + "td3_tensorboard/",
         device="cuda" if torch.cuda.is_available() else "cpu"
     )
+
+    if os.path.exists(global_expert_obs_path) and os.path.exists(global_expert_actions_path):
+        print("\n--- Loading expert data into replay buffer ---")
+        
+        expert_observations = np.load(global_expert_obs_path)
+        expert_actions = np.load(global_expert_actions_path)
+
+        assert len(expert_observations) == len(expert_actions), "Mismatch in dataset size."
+
+        num_transitions = len(expert_observations)
+        
+        for i in range(num_transitions):
+            obs = expert_observations[i]
+            action = expert_actions[i]
+            
+           
+            next_obs = expert_observations[i + 1] if i < num_transitions - 1 else obs
+            reward = 1.0  
+            done = False 
+            
+     
+            model.replay_buffer.add(
+                obs,
+                next_obs,
+                np.array([action]),
+                np.array([reward]),
+                np.array([done]),
+                [{}] 
+            )
+        
+        print(f"--- Successfully loaded {num_transitions} transitions into the replay buffer. ---\n")
+    else:
+        print("\n--- No expert data found, starting training from scratch. ---\n")
 
     
     

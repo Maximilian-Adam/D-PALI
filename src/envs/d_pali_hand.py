@@ -341,7 +341,7 @@ class DPALI_Hand(MujocoEnv):
                 and ori_err < 0.15
                 and num_contacts == 3
                 and not table_contact):
-            success_bonus = 25   
+            success_bonus = 500  
             terminated    = True
 
         # Severe penalty for dropping or touching the table
@@ -349,7 +349,7 @@ class DPALI_Hand(MujocoEnv):
 
 
         penetration_penalty = 0.0
-        PENALTY_SCALE = 20.0 
+        PENALTY_SCALE = 40.0 
         for p in ee_pos:
             dist = np.linalg.norm(p - cube_pos)
             if dist < CUBE_RADIUS:
