@@ -18,9 +18,10 @@ class DPALI_Hand(MujocoEnv):
         "render_height": 1080,
         "target_pos": [0.015, 0.0, -0.15],
         "cube_initial_pos": [0.015, 0.0, -0.15],
-        "target_random_range": [-0.06, 0.06],
+        "target_random_range_x_y": [-0.05, 0.05],
+        "target_random_range_z": [0, 0.05],
         "reward": {
-            "success_strict_dist": 0.01,
+            "success_strict_dist": 0.02,
             "success_loose_dist": 0.005,
             "time_penalty": -0.001,
             "normalisation_scale": 1.0, 
@@ -214,9 +215,11 @@ class DPALI_Hand(MujocoEnv):
             mocap_addr = self.model.body_mocapid[mocap_id]
 
             cube_start_pos = self._cube_initial_pos.copy()
-            t_min, t_max = self.config['target_random_range']
+            t_min, t_max = self.config['target_random_range_x_y']
+            t_min_z, t_max_z = self.config['target_random_range_z']
             offset = self.np_random.uniform(t_min, t_max, size=2)
-            target_pos = cube_start_pos #+ np.array([offset[0], offset[1], 0])
+            offset_z = self.np_random.uniform(t_min_z, t_max_z)
+            target_pos = cube_start_pos + np.array([offset[0], offset[1], offset_z])
             self.data.mocap_pos[mocap_addr] = target_pos # Use mocap_pos
 
             rot_axis = [0.0, 0.0, 1.0]
@@ -333,16 +336,16 @@ class DPALI_Hand(MujocoEnv):
             0.1 * approach_reward
           + 0.1 * centering_reward
           + 0.1 * contact_reward
-          + 0.4 * manipulation_reward
-          + 0.3 * orientation_reward
+          + 0.7 * manipulation_reward
+          #+ 0.3 * orientation_reward
         )
 
         # --------------- sparse bonuses & penalties ----------------------
         terminated    = False
         success_bonus = 0.0
         if (cube_target_dist < cfg["success_strict_dist"]
-                and ori_err < 0.15
-                and num_contacts == 3
+                #and ori_err < 0.15
+                and num_contacts >= 2
                 and not table_contact):
             success_bonus = 400  
             terminated    = True
@@ -352,7 +355,7 @@ class DPALI_Hand(MujocoEnv):
 
 
         penetration_penalty = 0.0
-        PENALTY_SCALE = 60.0 
+        PENALTY_SCALE = 80.0 
         for p in ee_pos:
             dist = np.linalg.norm(p - cube_pos)
             if dist < CUBE_RADIUS:
