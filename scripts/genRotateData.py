@@ -16,9 +16,6 @@ global_old_model_dir = f"./training/TD3/{global_folder}/best_model/best_model.zi
 global_old_stats_path = f"./training/TD3/{global_folder}/{global_version}/vec_normalize.pkl"
 
 
-# --- IMPORTANT: Import the setup function from your training script ---
-# This assumes rotateTest.py is in a 'scripts' folder and train_TD3.py is in the parent directory.
-# Adjust the import path if your file structure is different.
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -83,21 +80,13 @@ def setup(mode="train", log_dir=None, max_episode_steps=500):
 
 
 def generate_expert_data():
-    """
-    Creates an instance of the DPALIHand-v0 environment, runs a scripted
-    policy to generate expert trajectories, and saves them to .npy files.
-    """
     print("--- Starting Expert Data Generation ---")
     
-    # --- Use the EXACT same setup as your training environment ---
-    # We use mode "eval_train" as a good, non-training-but-normalized option
-    # or create a custom one if needed. Let's use "eval_train".
+
     env = setup(mode="eval_train", max_episode_steps=500)
 
-    # Reset the environment to get a starting observation
     obs = env.reset()
     
-    # Parameters
     num_actuators = env.get_attr('model')[0].nu
     base_joint_indices = [2, 5, 8]
     test_duration_steps = 500

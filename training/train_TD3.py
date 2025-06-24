@@ -24,7 +24,7 @@ import traceback
 warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
-global_mode = "train"
+global_mode = "test"
 global_total_timesteps = 1000000 # Total timesteps for training
 global_eval_freq = 50000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
@@ -34,7 +34,7 @@ global_reward_threshold = 2500.0 # Reward threshold for stopping training
 
 global_initial_lr = 0.0007593145723955295 
 global_final_lr = 1e-4
-global_folder = "Ori_V3.1"# Name of folder for saving models (Increment when training from scratch)
+global_folder = "Ori_V3.2"# Name of folder for saving models (Increment when training from scratch)
 global_version = "v1.0" # Sub-version for tracking changes (increment when you use continue training)
 
 global_save_dir = f"./training/TD3/{global_folder}/" # Directory to save models

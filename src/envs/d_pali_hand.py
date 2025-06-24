@@ -300,8 +300,11 @@ class DPALI_Hand(MujocoEnv):
         approach_reward = 1.0 - np.clip(effective_dist / (MAX_APPROACH_DIST - CUBE_RADIUS), 0.0, 1.0)
 
         # (2) manipulation – move the cube towards the target position
-        cube_target_dist   = np.linalg.norm(cube_pos - target_pos)
-        manipulation_reward = 1.0 - np.clip(cube_target_dist / 0.10, 0.0, 1.0)
+        cube_target_dist = np.linalg.norm(cube_pos - target_pos)
+        # Higher alpha = steeper curve and more emphasis on precision.
+        alpha = 15 
+
+        manipulation_reward = np.exp(-alpha * cube_target_dist)
 
         # (3) orientation – align cube orientation to the target
         ori_err = self.quat_angle(cube_ori, target_ori)
@@ -328,10 +331,10 @@ class DPALI_Hand(MujocoEnv):
         # weighted sum (weights sum to 1)
         shaped_reward = (
             0.1 * approach_reward
-          + 0.2 * centering_reward
-          + 0.2 * contact_reward
-          #+ 0.3 * manipulation_reward
-          + 0.5 * orientation_reward
+          + 0.1 * centering_reward
+          + 0.1 * contact_reward
+          + 0.4 * manipulation_reward
+          + 0.3 * orientation_reward
         )
 
         # --------------- sparse bonuses & penalties ----------------------
@@ -341,7 +344,7 @@ class DPALI_Hand(MujocoEnv):
                 and ori_err < 0.15
                 and num_contacts == 3
                 and not table_contact):
-            success_bonus = 500  
+            success_bonus = 400  
             terminated    = True
 
         # Severe penalty for dropping or touching the table
@@ -349,7 +352,7 @@ class DPALI_Hand(MujocoEnv):
 
 
         penetration_penalty = 0.0
-        PENALTY_SCALE = 40.0 
+        PENALTY_SCALE = 60.0 
         for p in ee_pos:
             dist = np.linalg.norm(p - cube_pos)
             if dist < CUBE_RADIUS:

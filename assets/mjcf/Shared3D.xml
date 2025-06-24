@@ -47,7 +47,7 @@
                 <geom type="mesh"      contype="8" conaffinity="4"  group="1" priority="1"></geom>
             </default>
             <default class="Hard_tip">
-                <geom type="sphere"  contype="2" conaffinity="4"  group="1" condim="3" friction="2.0 0.05 0.01"></geom>
+                <geom type="sphere"  contype="2" conaffinity="4"  group="1" condim="3" friction="2.0 0.05 0.01" solref="0.002 1.2"></geom>
             </default>
             <default class="object">
                 <geom type="box"       contype="4" conaffinity="10" group="1" priority="1" solref="0.002 1.2" condim="3" friction="2.0 0.05 0.01"></geom>
