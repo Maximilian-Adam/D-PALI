@@ -19,18 +19,15 @@
             texuniform="true" />
 
         <!-- Mesh files to be called by geoms (in gripper-worked) -->
-        
-        <!--Linkages files-->
-        <mesh name="Back_Link" file="3Dmeshes/Back_Link.STL" /> 
-        <mesh name="Short_Link" file="3Dmeshes/Short_Link.STL" />
-        <mesh name="Front_Link" file="3Dmeshes/Front_Link.STL" /> 
-        <mesh name="Long_Link" file="3Dmeshes/Long_Link.STL" />
+        <mesh name="Back_Link" file="Back_Link.stl" /> 
+        <mesh name="Short_Link" file="Short_Link.stl" />
+        <mesh name="Front_Link" file="Front_Link.stl" /> 
+        <mesh name="Long_Link" file="Long_Link.stl" />
 
         <!--Files for our new base and other new parts-->
-        <mesh name="Main_Base" file="3Dmeshes/Main_Base.STL"/> <!--Big circular base-->
+        <mesh name="Main_Base" file="Main_Base.stl"/> <!--Big circular base-->
         <!--Bases that connect the 'fingers' to the main base-->
-        <mesh name="Finger_Base" file="3Dmeshes/Finger_Base.STL"/>
-
+        <mesh name="Finger_Base" file="Finger_Base.stl"/>
     </asset>
 
     <default><!-- All geoms/joints defined below are dummies, which can be called upon when making the actual model-->
@@ -56,7 +53,7 @@
                 <geom type="box"       contype="4" conaffinity="11" group="1" priority="1" solref="1e-4" solimp="1e3 1e3 1e3" condim="3"></geom>
             </default>
             <default class="platform">
-                <geom                  contype="8" conaffinity="4"  group="1" mass="1e3" condim="3"></geom>
+                <geom                  contype="2" conaffinity="4"  group="1" mass="1e3" condim="3"></geom>
             </default>
         </default>
 

@@ -53,11 +53,11 @@ def training_td3( total_timesteps, file_path, log_dir="./training/logs/", eval_f
     n_actions = env.action_space.shape[0]
     action_noise = NormalActionNoise(
         mean=np.zeros(n_actions), 
-        sigma=0.2 * np.ones(n_actions)
+        sigma=0.1 * np.ones(n_actions)
     )
     
     if policy_args is not None:
-        # Use custom policy arguments if provided
+        # Use custom policy arguments if pxrovided
         _policy_kwargs = policy_args
     else:
         # Default policy arguments for TD3
@@ -231,9 +231,11 @@ def testing_td3(file_path, num_episodes=10, max_episode_steps=500):
                           
                           f"Cube-Target Dist: {info.get('cube_target_distance', 'N/A'):.4f}, "
                           f"manipulation_reward: {info.get('manipulation_reward', 'N/A'):.3f}, "
-                          f"Cube Alignment: {info.get('cube_alignment', 'N/A'):.4f}, "
                           f"Cube Height: {info.get('cube_height', 'N/A'):.4f}, "
-                          f"Contacts: {info.get('num_contacts', 'N/A')}")
+                          f"Contacts: {info.get('num_contacts', 'N/A')}",
+                          f"axis_angle: {info.get('axis_angle', 'N/A'):.4f}",
+                          f"axis: {info.get('axis', 'N/A')}")
+                    
                 
                 env.render()
                 time.sleep(1/60)  # Control rendering speed
@@ -302,11 +304,11 @@ def hyperparameter_search():
         )
 
 if __name__ == "__main__":
-    mode = "test"  # "train", "test", "continue", or "hypersearch"
+    mode = "continue"  # "train", "test", "continue", or "hypersearch"
     
     # Configuration
-    total_timesteps = 5000000 #1000000
-    file_path = "./training/checkpoints/td3_DPALIHand-v26.0"
+    total_timesteps = 20000 #1000000
+    file_path = "./training/checkpoints/td3_DPALIHand-v27.0"
     
     if mode == "train":
         training_td3(total_timesteps, file_path)
@@ -316,10 +318,11 @@ if __name__ == "__main__":
         
     elif mode == "continue":
         # Continue training from existing model
-        existing_model = "./training/checkpoints/td3_DPALIHand-v26.0"
-        new_save_path = "./training/checkpoints/td3_DPALIHand-v26.0"
-        for i in range(1, 10):
-            continue_training_td3(existing_model, 50000000, new_save_path)
+        existing_model = "./training/checkpoints/td3_DPALIHand-v27.0"
+        new_save_path = "./training/checkpoints/td3_DPALIHand-v27.0"
+        for i in range(1, 4):
+            continue_training_td3(existing_model, 50000, new_save_path)
+            testing_td3(file_path, num_episodes=5)
         
     elif mode == "hypersearch":
         hyperparameter_search()
