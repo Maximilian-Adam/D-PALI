@@ -5,6 +5,7 @@ The aim of this project was to develop on the previous versions of [D-PALI](http
 
 The basis for the D-PALI robot was to create a gripper cappable of achieving dextours in hand manipulation, whilst minimising overall cost. We aimed to keep this core goal in mind, whilst attempting to extend the gripper's work space to 3 Dimensions. We also aimed to make robust control policies for the gripper via the use of Reinforcement Learning to manipulate objects, over traditional inverse kinematic solutions. 
 
+_Final results can be seen [here](https://youtu.be/75graQ1XKI4)._
 ## Design
 To achieve our aims, we came up with the design below.
 ![D-PALI 3D gripper design](./Imgs/D-Pali_new.png)
