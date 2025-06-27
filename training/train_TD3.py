@@ -24,7 +24,7 @@ import traceback
 warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
-global_mode = "test"
+global_mode = "test"  # Set to "train", "test", "continue", or "hypersearch
 global_total_timesteps = 1000000 # Total timesteps for training
 global_eval_freq = 50000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
@@ -35,13 +35,13 @@ global_reward_threshold = 2500.0 # Reward threshold for stopping training
 global_initial_lr = 0.0007593145723955295 
 global_final_lr = 1e-4
 global_folder = "Ori_V4.0" # Name of folder for saving models (Increment when training from scratch)
-global_version = "v1.0" # Sub-version for tracking changes (increment when you use continue training)
+global_version = "v4.0" # Sub-version for tracking changes (increment when you use continue training)
 
-global_save_dir = f"./training/TD3/{global_folder}/" # Directory to save models
+global_save_dir = f"./models/{global_folder}/" # Directory to save models
 global_best_model_path = os.path.join(global_save_dir, "best_model/best_model.zip")
 global_stats_path = os.path.join(global_save_dir, global_version, "vec_normalize.pkl")
-global_old_model_dir = f"./training/TD3/{global_folder}/best_model/best_model.zip"
-global_old_stats_path = f"./training/TD3/{global_folder}/{global_version}/vec_normalize.pkl" # Make sure this path is correct for your old stats
+global_old_model_dir = f"./models/{global_folder}/best_model/best_model.zip"
+global_old_stats_path = f"./models/{global_folder}/{global_version}/vec_normalize.pkl" # Make sure this path is correct for your old stats
 
 global_expert_obs_path = "./training/expert_data/expert_observations.npy"
 global_expert_actions_path = "./training/expert_data/expert_actions.npy"
@@ -79,7 +79,7 @@ def setup(mode="train", log_dir=None, max_episode_steps=500):
         env.norm_reward = True
 
     elif (mode == "test"):
-        stats_dir = global_stats_dir if global_stats_dir != None else file_path + "_normalization.pkl"
+        stats_dir = global_stats_path
         # Load normalization statistics
         try:
             env = VecNormalize.load(stats_dir, env)
@@ -172,7 +172,6 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         tau=optimized_hyperparams['tau'],
         gamma=optimized_hyperparams['gamma'],                   # Discount factor
         train_freq=(4, "step"),       # Train after every 4 steps
-        gradient_steps=4,             # Do as many gradient steps as environment steps
         gradient_steps=4,             # Do as many gradient steps as environment steps
         action_noise=action_noise,    # Exploration noise
         policy_delay=2,               # Delay policy updates (key TD3 feature)
@@ -481,17 +480,6 @@ if __name__ == "__main__":
     elif mode == "test":
         model_to_test = global_best_model_path
         stats_to_use = global_stats_path
-
-        # --- CRUCIAL: Verify files exist before trying to load them ---
-        if not os.path.exists(model_to_test):
-            print(f"\nFATAL: Model file not found at '{model_to_test}'")
-            print("Please ensure that training has been run and a 'best_model.zip' file was saved in the correct directory.")
-            exit(1)
-        
-        if not os.path.exists(stats_to_use):
-            print(f"\nFATAL: Normalization stats file not found at '{stats_to_use}'")
-            print("This 'vec_normalize.pkl' file is required to run the test with the correct environment normalization.")
-            exit(1)
 
         testing_td3(model_to_test, num_episodes=5)
         
