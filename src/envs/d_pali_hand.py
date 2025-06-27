@@ -310,12 +310,25 @@ class DPALI_Hand(MujocoEnv):
 
         close_manipulation_reward = np.exp(-alpha_close * cube_target_dist)
         far_manipulation_reward = np.exp(-alpha_far * cube_target_dist)
-    
+        
+        # Handle zero quaternions (initialization case)
+        cube_norm = np.linalg.norm(cube_ori)
+        target_norm = np.linalg.norm(target_ori)
 
-        # (3) orientation – align cube orientation to the target
-        ori_err = self.quat_angle(cube_ori, target_ori)
-        scaled_err = np.clip(ori_err / np.pi, 0.0, 1.0)
-        orientation_reward = 1.0 - (scaled_err ** 2)
+        if cube_norm < 1e-6:  # Essentially zero
+            cube_quat = np.array([1.0, 0.0, 0.0, 0.0])  # Identity quaternion
+        else:
+            cube_quat = cube_ori / cube_norm
+
+        if target_norm < 1e-6:  # Essentially zero
+            target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # Identity quaternion
+        else:
+            target_quat = target_ori / target_norm
+
+        ## (3) Orientation Reward
+        quat_similarity = np.abs(np.dot(cube_quat, target_quat))
+        ori_angle = 2 * np.arccos(np.clip(quat_similarity, 0, 1.0))  # Convert to angle in radians
+        ori_reward = 5 * (1 - ori_angle / np.pi)
 
         # (4) contacts – encourage a stable 3-finger grasp
         num_contacts       = sum(contacts)           

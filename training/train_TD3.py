@@ -79,11 +79,23 @@ def setup(mode="train", log_dir=None, max_episode_steps=500):
         env.norm_reward = True
 
     elif (mode == "test"):
-        # Load normalization stats for testing
-        if os.path.exists(global_stats_path):
-            env = VecNormalize.load(global_stats_path, env)
-            env.training = False
-            env.norm_reward = False 
+        stats_dir = global_stats_dir if global_stats_dir != None else file_path + "_normalization.pkl"
+        # Load normalization statistics
+        try:
+            env = VecNormalize.load(stats_dir, env)
+            env.training = False      # Don't update stats during testing
+            env.norm_reward = False   # Don't normalize rewards during testing
+        except:
+            env = VecNormalize(
+                env,
+                training=False,           # Update statistics during training
+                norm_obs=True,           # Normalize observations
+                norm_reward=False,        # Normalize rewards
+                clip_obs=10.0,           # Clip normalized obs to ±10
+                clip_reward=20.0,        # Clip normalized rewards
+                gamma=0.975,              # For reward normalization
+                epsilon=1e-8
+            )
     elif (mode == "eval_train"):
         env = VecNormalize(
             env,
@@ -161,6 +173,7 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         gamma=optimized_hyperparams['gamma'],                   # Discount factor
         train_freq=(4, "step"),       # Train after every 4 steps
         gradient_steps=4,             # Do as many gradient steps as environment steps
+        gradient_steps=4,             # Do as many gradient steps as environment steps
         action_noise=action_noise,    # Exploration noise
         policy_delay=2,               # Delay policy updates (key TD3 feature)
         target_policy_noise=0.2,      # Noise added to target policy
@@ -222,7 +235,7 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
     eval_callback = EvalCallback(
         eval_env,
         best_model_save_path=os.path.join(save_dir, "best_model/"),
-        log_path=log_dir + "eval_logs/",
+        log_path=log_dir + "/logs/eval_logs/",
         eval_freq=eval_freq,
         n_eval_episodes=10,           # Number of episodes for evaluation
         deterministic=True,           # Use deterministic actions for evaluation

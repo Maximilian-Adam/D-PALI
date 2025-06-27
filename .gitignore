@@ -1,12 +1,15 @@
 d_pali/
 training/logs/
 training/checkpoints/
-models/
+models_old/
 envs/__pycache__/
 D-Pali_venv/
 RL/
 **/d_pali_hand_rl.egg-info/
 MUJOCO_LOG.TXT
+best_model/
+eval_logs/
+tensorboard_dpali/
 **/models/
 **/__pycache__/
 **/.vscode/
