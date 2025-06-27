@@ -34,7 +34,7 @@ global_reward_threshold = 2500.0 # Reward threshold for stopping training
 
 global_initial_lr = 0.0007593145723955295 
 global_final_lr = 1e-4
-global_folder = "Ori_V3.0" # Name of folder for saving models (Increment when training from scratch)
+global_folder = "Ori_V4.0" # Name of folder for saving models (Increment when training from scratch)
 global_version = "v1.0" # Sub-version for tracking changes (increment when you use continue training)
 
 global_save_dir = f"./training/TD3/{global_folder}/" # Directory to save models
@@ -175,6 +175,7 @@ def training_td3(total_timesteps, save_dir, log_dir="./training/logs/", eval_fre
         device="cuda" if torch.cuda.is_available() else "cpu"
     )
 
+    # For loading expert data into the replay buffer
     #if os.path.exists(global_expert_obs_path) and os.path.exists(global_expert_actions_path):
     #    print("\n--- Loading expert data into replay buffer ---")
     #    

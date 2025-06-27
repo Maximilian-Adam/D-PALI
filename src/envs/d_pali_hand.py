@@ -18,10 +18,10 @@ class DPALI_Hand(MujocoEnv):
         "render_height": 1080,
         "target_pos": [0.015, 0.0, -0.15],
         "cube_initial_pos": [0.015, 0.0, -0.15],
-        "target_random_range_x_y": [-0.05, 0.05],
-        "target_random_range_z": [0, 0.05],
+        "target_random_range_x_y": [-0.03, 0.03],
+        "target_random_range_z": [0, 0.04],
         "reward": {
-            "success_strict_dist": 0.02,
+            "success_strict_dist": 0.008,
             "success_loose_dist": 0.005,
             "time_penalty": -0.001,
             "normalisation_scale": 1.0, 
@@ -219,7 +219,7 @@ class DPALI_Hand(MujocoEnv):
             t_min_z, t_max_z = self.config['target_random_range_z']
             offset = self.np_random.uniform(t_min, t_max, size=2)
             offset_z = self.np_random.uniform(t_min_z, t_max_z)
-            target_pos = cube_start_pos + np.array([offset[0], offset[1], offset_z])
+            target_pos = cube_start_pos + np.array([offset[0], offset[1], offset_z]) 
             self.data.mocap_pos[mocap_addr] = target_pos # Use mocap_pos
 
             rot_axis = [0.0, 0.0, 1.0]
@@ -305,9 +305,12 @@ class DPALI_Hand(MujocoEnv):
         # (2) manipulation – move the cube towards the target position
         cube_target_dist = np.linalg.norm(cube_pos - target_pos)
         # Higher alpha = steeper curve and more emphasis on precision.
-        alpha = 15 
+        alpha_close = 80
+        alpha_far = 15
 
-        manipulation_reward = np.exp(-alpha * cube_target_dist)
+        close_manipulation_reward = np.exp(-alpha_close * cube_target_dist)
+        far_manipulation_reward = np.exp(-alpha_far * cube_target_dist)
+    
 
         # (3) orientation – align cube orientation to the target
         ori_err = self.quat_angle(cube_ori, target_ori)
@@ -321,7 +324,7 @@ class DPALI_Hand(MujocoEnv):
         elif num_contacts == 1:
             contact_reward = 0        
         elif num_contacts == 2:
-            contact_reward = 0.2
+            contact_reward = 0.4
         elif num_contacts == 3:
             contact_reward = 1
 
@@ -332,12 +335,20 @@ class DPALI_Hand(MujocoEnv):
             centering_reward = 1.0 - np.clip(centering_error / 0.02, 0.0, 1.0)
 
         # weighted sum (weights sum to 1)
+        #shaped_reward = (
+        #    0.2 * approach_reward
+        #  #+ 0.1 * centering_reward
+        #  + 0.1 * contact_reward
+        #  + 0.7 * manipulation_reward
+        #  #+ 0.3 * orientation_reward
+        #)
+
         shaped_reward = (
-            0.1 * approach_reward
-          + 0.1 * centering_reward
-          + 0.1 * contact_reward
-          + 0.7 * manipulation_reward
-          #+ 0.3 * orientation_reward
+            0.0 * approach_reward
+          + 0.0 * centering_reward
+          + 0.3 * contact_reward
+          + 0.4 * close_manipulation_reward
+          + 0.3 * far_manipulation_reward
         )
 
         # --------------- sparse bonuses & penalties ----------------------
