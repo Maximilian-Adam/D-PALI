@@ -23,7 +23,7 @@ warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
 global_mode = "test"
-global_total_timesteps = 3000000 # Total timesteps for training
+global_total_timesteps = 2000000 # Total timesteps for training
 global_eval_freq = 250000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
 global_save_freq = 100000 # Frequency of saving model checkpoints (in steps)
@@ -31,12 +31,12 @@ global_reward_threshold = 2500.0 # Reward threshold for stopping training
 
 global_initial_lr = 0.0007593145723955295 
 global_final_lr = 1e-4
-global_folder = "Ori_V4.0" # Name of folder for saving models (Increment when training from scratch)
-global_version = "v4.3" # Sub-version for tracking changes (increment when you use continue training)
+global_folder = "Ori_V5.0" # Name of folder for saving models (Increment when training from scratch)
+global_version = "v5.0" # Sub-version for tracking changes (increment when you use continue training)
 global_save_dir = "./models/" + global_folder + "/" + global_version # Directory to save models
 global_stats_dir = "./models/" + global_folder + "/" + global_version + "_normalization.pkl" # Directory to save normalization stats
-global_old_stats_dir =  "./models/" + global_folder + "/v4.0_normalization.pkl"  # Directory for old normalization stats (if continuing training)
-global_old_dir = "./models/" + global_folder + "/v4.0"
+global_old_stats_dir =  "./models/" + global_folder + "/v5.3_normalization.pkl"  # Directory for old normalization stats (if continuing training)
+global_old_dir = "./models/" + global_folder + "/v5.3"
 
 
 
@@ -74,9 +74,21 @@ def setup(mode="train", log_dir=None, max_episode_steps=500):
     elif (mode == "test"):
         stats_dir = global_stats_dir if global_stats_dir != None else file_path + "_normalization.pkl"
         # Load normalization statistics
-        env = VecNormalize.load(stats_dir, env)
-        env.training = False      # Don't update stats during testing
-        env.norm_reward = False   # Don't normalize rewards during testing
+        try:
+            env = VecNormalize.load(stats_dir, env)
+            env.training = False      # Don't update stats during testing
+            env.norm_reward = False   # Don't normalize rewards during testing
+        except:
+            env = VecNormalize(
+                env,
+                training=False,           # Update statistics during training
+                norm_obs=True,           # Normalize observations
+                norm_reward=False,        # Normalize rewards
+                clip_obs=10.0,           # Clip normalized obs to ±10
+                clip_reward=20.0,        # Clip normalized rewards
+                gamma=0.975,              # For reward normalization
+                epsilon=1e-8
+            )
     elif (mode == "eval_train"):
         env = VecNormalize(
             env,
@@ -366,7 +378,7 @@ if __name__ == "__main__":
         training_td3(total_timesteps, file_path)
         
     elif mode == "test":
-        testing_td3(file_path, num_episodes=5)
+        testing_td3(file_path, num_episodes=10)
         
     elif mode == "continue":
         # Continue training from existing model

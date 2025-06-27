@@ -146,13 +146,23 @@ class DPALI_Hand(MujocoEnv):
             self.data.qpos[cube_jnt_addr:cube_jnt_addr + 3] = self._cube_initial_pos
         
         rot_axis = [0.0, 0.0, 1.0] # Z-axis rotation
-        angle = np.random.uniform(0, np.pi) 
+        angle = np.random.uniform(-np.pi, np.pi) 
         rotation = np.zeros(4)
         mujoco.mju_axisAngle2Quat(rotation, rot_axis, angle)
 
-        # Reset target orientation
-        target_ori = rotation  # Identity quaternion
-        self.model.body_quat[self._target_id] = target_ori
+        # rotation = [1, 1, 1, 1]
+
+        mocap_id = self._target_id  
+        if mocap_id != -1 and self.model.body_mocapid[mocap_id] != -1:
+            mocap_addr = self.model.body_mocapid[mocap_id]
+            self.data.mocap_quat[mocap_addr] = rotation
+        else:
+            self.model.body_quat[self._target_id] = rotation
+
+        
+
+
+        
         
         # Forward the simulation to apply changes
         mujoco.mj_forward(self.model, self.data)
@@ -231,7 +241,7 @@ class DPALI_Hand(MujocoEnv):
         approach_reward = 0.0
         num_contacts = sum(contacts)
         if (num_contacts == 1) : contact_reward = 0
-        elif (num_contacts == 2) : contact_reward = 0.3
+        elif (num_contacts == 2) : contact_reward = 0.1
         elif (num_contacts == 3) : contact_reward = 1.5
         else: 
             contact_reward = -0.2
@@ -249,7 +259,7 @@ class DPALI_Hand(MujocoEnv):
         success_bonus = 0.0
 
         if (ori_angle < 0.1 and num_contacts == 3 and not table_contact):
-            success_bonus = 500.0
+            success_bonus = 1000.0
             terminated = True 
         
         reward = ori_reward + contact_reward + approach_reward + table_penalty + success_bonus

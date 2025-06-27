@@ -93,4 +93,17 @@
 - Running new v5.0 with new model
 - May need to switch to old link for long link
 
+## 23/05/25
+- v5.0 n 5.1 were decent, not super consistent due to the model dropping the cube by default
+- v5.2 is okay, it can rotate pretty well, but if it drops the cube, it gets confused
+- v5.3 is gonna be a continuation of this, we shall see
+    - v5.3 works a bit better, still drops it though, so I've tweaked some values in the xml, and hopefully it should be able to hold it from the start now.
+- v5.4 is gonna be trained with the new xml (end effectors can clip for this though, since it's using a new sovler)
+    - Ok that was a steaming pile of horse shit. Gonna stick to the old solver, because it somehow unlearnt everything from the previous itterations.
+
+## 24/06/25
+- Gonna try doing orientation in a different axis today, and then also potentailly a position run, and hope for the best
+- May wanna try normalisng reward values too
+    - Nvm vec normalise already does this
+
 
