@@ -7,7 +7,6 @@ D-Pali_venv/
 RL/
 **/d_pali_hand_rl.egg-info/
 MUJOCO_LOG.TXT
-best_model/
 eval_logs/
 tensorboard_dpali/
 **/__pycache__/
