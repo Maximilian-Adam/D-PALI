@@ -1,83 +1,149 @@
+import json
 from pathlib import Path
 import numpy as np
-import mujoco       
+import mujoco
 from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium import spaces
+
 
 ASSETS = Path(__file__).resolve().parent.parent.parent / "assets" / "mjcf"
 
 class DPALI_Hand(MujocoEnv):
+    # Default hyperparameters and reward weights
+    DEFAULT_CONFIG = {
+        "xml_file": "DPALI3D.xml",
+        "frame_skip": 5,
+        "max_episode_steps": 500,
+        "render_width": 1920,
+        "render_height": 1080,
+        "target_pos": [0.015, 0.0, -0.15],
+        "cube_initial_pos": [0.015, 0.0, -0.15],
+        "target_random_range_x_y": [-0.03, 0.03],
+        "target_random_range_z": [0, 0.04],
+        "reward": {
+            "success_strict_dist": 0.008,
+            "success_loose_dist": 0.005,
+            "time_penalty": -0.001,
+            "normalisation_scale": 1.0, 
+        },
+    }
+
     metadata = {"render_modes": ["human", "rgb_array"],
                 "render_fps": 100}
 
-    def __init__(self, xml: str | None = None, 
-                 frame_skip: int = 5,
-                 render_mode: str | None = "human",
-                 max_episode_steps: int = 500):
+    def __init__(
+        self,
+        xml: str | None = None,
+        frame_skip: int | None = None,
+        render_mode: str | None = "human",
+        max_episode_steps: int | None = None,
+        config: dict | None = None,
+        config_path: str | None = None,
+        seed: int | None = None,
+    ):
+        # Load config from file if provided
+        if config_path:
+            with open(config_path, 'r') as f:
+                ext = json.load(f)
+            config = {**self.DEFAULT_CONFIG, **ext}
+        else:
+            config = {**self.DEFAULT_CONFIG, **(config or {})}
+        self.config = config
 
-        xml_path = ASSETS / (xml or "DPALI3D.xml")
+        # Resolve xml, frame_skip, and episode length
+        xml_file = xml or config['xml_file']
+        self.frame_skip = frame_skip if frame_skip is not None else config['frame_skip']
+        self.max_episode_steps = max_episode_steps if max_episode_steps is not None else config['max_episode_steps']
+
+        # Path to MJCF
+        xml_path = ASSETS / xml_file
+
+        self._seed = seed
+
+        #timestep = self.model.opt.timestep      
+        #fps      = 1 / (self.frame_skip * timestep)
 
         calculated_fps = 1 / (frame_skip * 0.002)
 
         self.metadata = {
             "render_modes": ["human", "rgb_array"],
+            "config": config,
+            "seed": self._seed,
             "render_fps": calculated_fps
         }
-        
-        
+
+
+        # Initialize MujocoEnv (handles internal RNG via reset)
         super().__init__(
-            str(xml_path),        
-            frame_skip,
-            observation_space=None, 
+            str(xml_path),
+            self.frame_skip,
+            observation_space=None,
             render_mode=render_mode,
-            width=1920,
-            height=1080,
+            width=config['render_width'],
+            height=config['render_height']
         )
 
-        
+        #timestep = self.model.opt.timestep      
+        #fps      = 1 / (self.frame_skip * timestep) 
 
-        # Cache the End Effectors geom ID for our reward
-        self._end_effector_id = [
+        # Cache IDs
+        self._end_effector_geom_ids = [
             mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"Hard_tip_L"),
             mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"Hard_tip_R"),
             mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"Hard_tip_U"),
         ]
-        
-        # Cache the cube ID for our reward
+
+        self._effector_site_ids = [
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, b"Tip_L"),
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, b"Tip_R"),
+            mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, b"Tip_U"),
+        ]
+
+        if any(gid < 0 for gid in self._end_effector_geom_ids):
+            raise ValueError("One or more end effector geoms not found in the model.")
+
+        if any(sid < 0 for sid in self._effector_site_ids):
+            raise ValueError("One or more end effector sites not found in the model.")
+
+        self._table_geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"table2")
+
+        if self._table_geom_id < 0:
+            raise ValueError("'table2' not found in the model.")
+
         self._cube_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, b"object")
         self._cube_geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"object")
         self._target_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, b"target")
-        self._table_geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, b"table2")
 
-        # Fixed target position
-        self._target_pos = np.array([0.015, 0.0, -0.155])
-        self._cube_initial_pos = np.array([0.0195, 0, -0.14])
-        
-        # Episode management
-        self.max_episode_steps = max_episode_steps
+        # Convert positions to numpy arrays
+        self._target_pos = np.array(config['target_pos'], dtype=np.float32)
+        self._cube_initial_pos = np.array(config['cube_initial_pos'], dtype=np.float32)
+        self._workspace_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, b"workspace")
+
+        # Episode counter
         self.current_step = 0
 
-        # Set up action and observation spaces after initialization
-        self.action_space = spaces.Box(-1, 1, shape=(self.model.nu,), dtype=np.float32)
+        # Define a normalized action space from -1 to 1
+        num_actions = self.model.nu
+        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(num_actions,), dtype=np.float32)
         obs_dim = self._get_obs().size
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(obs_dim,), dtype=np.float32)
 
-    # FIXED: Properly indented reset method
-    def reset(self, *, seed=None, options=None):
-        super().reset(seed=seed)
-        self.current_step = 0  # Reset step counter
+    def reset(self, *, seed=None, options=None):  
+        actual_seed = seed if seed is not None else self._seed
+        self._seed = actual_seed
+
+        super().reset(seed=actual_seed, options=options)
+        self.current_step = 0
         obs = self.reset_model()
+        self.metadata['seed'] = self._seed
+
         return obs, {}
 
     def _get_obs(self) -> np.ndarray:
-        # Enhanced observation including task-relevant information
-        joint_pos = self.data.qpos.ravel()
-        joint_vel = self.data.qvel.ravel()
-        
-        # Get end effector positions
+        data = self.data
+        joint_pos = data.qpos.ravel()
+        joint_vel = data.qvel.ravel()
         ee_positions = self._get_all_End_Effector_pos().ravel()
-        
-        # Get cube and target positions
         cube_pos = self._get_cube_pos()
         target_pos = self._get_target_pos()
 
@@ -105,9 +171,12 @@ class DPALI_Hand(MujocoEnv):
         ee_to_cube = []
         for ee_pos in self._get_all_End_Effector_pos():
             ee_to_cube.extend(cube_pos - ee_pos)
+    
+        ee_to_cube = np.asarray(ee_to_cube, dtype=np.float32)
 
+        cube_to_target_ori = np.array([self.quat_angle(cube_ori, target_ori)], dtype=np.float32)
         quat_similarity = np.clip(np.abs(np.dot(cube_quat, target_quat)),0,1)
-
+        
         obs = np.concatenate([
             joint_pos,
             joint_vel,
@@ -119,7 +188,9 @@ class DPALI_Hand(MujocoEnv):
             contacts,
             cube_ori,
             target_ori,
-            np.array([quat_similarity]).ravel()])
+            cube_to_target_ori,
+            #np.array([quat_similarity]).ravel()
+        ])
         return obs.astype(np.float32)
 
     def step(self, action):
@@ -128,56 +199,49 @@ class DPALI_Hand(MujocoEnv):
         self.do_simulation(scaled_action, self.frame_skip)
         obs = self._get_obs()
         reward, terminated = self._compute_reward()
-        
-        # Check for episode timeout
         truncated = self.current_step >= self.max_episode_steps
-        
         info = self._get_info()
         return obs, reward, terminated, truncated, info
 
     def reset_model(self):
-        # Add noise to initial joint positions
-        noise = self.np_random.uniform(-0.02, 0.02, size=self.model.nq)
-        self.set_state(self.init_qpos + noise, self.init_qvel * 0)
+        mujoco.mj_resetData(self.model, self.data)
 
-        # Set cube to fixed initial position
         cube_jnt_addr = self.model.body_jntadr[self._cube_id]
-        if cube_jnt_addr >= 0:  # Check if the body has joints
+        if cube_jnt_addr >= 0:
             self.data.qpos[cube_jnt_addr:cube_jnt_addr + 3] = self._cube_initial_pos
-        
-        rot_axis = [0.0, 0.0, 1.0] # Z-axis rotation
-        angle = np.random.uniform(-np.pi, np.pi) 
-        rotation = np.zeros(4)
-        mujoco.mju_axisAngle2Quat(rotation, rot_axis, angle)
-
-        # rotation = [1, 1, 1, 1]
+            self.data.qpos[cube_jnt_addr + 3:cube_jnt_addr + 7] = [1, 0, 0, 0]
 
         mocap_id = self._target_id  
         if mocap_id != -1 and self.model.body_mocapid[mocap_id] != -1:
             mocap_addr = self.model.body_mocapid[mocap_id]
-            self.data.mocap_quat[mocap_addr] = rotation
-        else:
-            self.model.body_quat[self._target_id] = rotation
 
-        
+            cube_start_pos = self._cube_initial_pos.copy()
+            t_min, t_max = self.config['target_random_range_x_y']
+            t_min_z, t_max_z = self.config['target_random_range_z']
+            offset = self.np_random.uniform(t_min, t_max, size=2)
+            offset_z = self.np_random.uniform(t_min_z, t_max_z)
+            target_pos = cube_start_pos + np.array([offset[0], offset[1], offset_z]) 
+            self.data.mocap_pos[mocap_addr] = target_pos # Use mocap_pos
 
+            rot_axis = [0.0, 0.0, 1.0]
+            angle = self.np_random.uniform(0, 2*np.pi)
+            target_ori = np.zeros(4)
+            mujoco.mju_axisAngle2Quat(target_ori, rot_axis, angle)
+            self.data.mocap_quat[mocap_addr] = target_ori
 
-        
-        
-        # Forward the simulation to apply changes
         mujoco.mj_forward(self.model, self.data)
-        
+
+
         return self._get_obs()
 
     def _get_all_End_Effector_pos(self) -> np.ndarray:
-        Tip_L_pos = self.data.geom_xpos[self._end_effector_id[0]]
-        Tip_R_pos = self.data.geom_xpos[self._end_effector_id[1]]
-        Tip_U_pos = self.data.geom_xpos[self._end_effector_id[2]]
-        return np.array([Tip_L_pos, Tip_R_pos, Tip_U_pos], dtype=np.float32)
-    
+        return np.asarray([
+            self.data.site_xpos[sid].copy() for sid in self._effector_site_ids
+        ], dtype=np.float32)
+
     def _get_cube_pos(self) -> np.ndarray:
         return self.data.xpos[self._cube_id].copy()
-    
+
     def _get_target_pos(self) -> np.ndarray:
         return self.data.xpos[self._target_id].copy()
     
@@ -186,11 +250,20 @@ class DPALI_Hand(MujocoEnv):
     
     def _get_target_orientation(self) -> np.ndarray:
         return self.data.xquat[self._target_id].copy()
+    
+    def quat_angle(self, q_current: np.ndarray, q_target: np.ndarray) -> float:
+
+        cos_half_theta = abs(float(np.dot(q_current, q_target)))
+        cos_half_theta = np.clip(cos_half_theta, -1.0, 1.0)
+        return 2.0 * np.arccos(cos_half_theta)
+
+  
 
     def _check_contacts(self):
         """Check if each end effector is in contact with the cube."""
         tip_contact = [False, False, False]  # L, R, U tips
         table_contact = False
+
         
         for i in range(self.data.ncon):
             contact = self.data.contact[i]
@@ -201,7 +274,7 @@ class DPALI_Hand(MujocoEnv):
                 table_contact = True
                 continue
             
-            for tip_idx, tip_id in enumerate(self._end_effector_id):
+            for tip_idx, tip_id in enumerate(self._end_effector_geom_ids):
                 if ((geom1_id == self._cube_geom_id and geom2_id == tip_id) or 
                     (geom2_id == self._cube_geom_id and geom1_id == tip_id)):
                     tip_contact[tip_idx] = True
@@ -209,15 +282,36 @@ class DPALI_Hand(MujocoEnv):
         
         return tip_contact, table_contact
     
+
     def _compute_reward(self):
-        """Improved reward function with dense rewards."""
-        end_effector_pos = self._get_all_End_Effector_pos()
-        cube_pos = self._get_cube_pos()
-        target_pos = self._get_target_pos()
-        cube_ori = self._get_cube_orientation()
-        target_ori = self._get_target_orientation()
+        cfg = self.config["reward"]
+
+        # --------------- geometry & state ---------------------------------
+        ee_pos      = self._get_all_End_Effector_pos()                # (3,3)
+        cube_pos    = self._get_cube_pos()
+        target_pos  = self._get_target_pos()
+        cube_ori    = self._get_cube_orientation()
+        target_ori  = self._get_target_orientation()
         contacts, table_contact = self._check_contacts()
 
+        CUBE_RADIUS = 0.024
+        MAX_APPROACH_DIST = 0.1
+
+        # --------------- dense sub-rewards (range ≈ [0, 1]) --------------
+        # (1) approach – bring fingertips close to the cube
+        avg_ee_cube_dist = np.mean([np.linalg.norm(p - cube_pos) for p in ee_pos])
+        effective_dist = np.maximum(0, avg_ee_cube_dist - CUBE_RADIUS)
+        approach_reward = 1.0 - np.clip(effective_dist / (MAX_APPROACH_DIST - CUBE_RADIUS), 0.0, 1.0)
+
+        # (2) manipulation – move the cube towards the target position
+        cube_target_dist = np.linalg.norm(cube_pos - target_pos)
+        # Higher alpha = steeper curve and more emphasis on precision.
+        alpha_close = 80
+        alpha_far = 15
+
+        close_manipulation_reward = np.exp(-alpha_close * cube_target_dist)
+        far_manipulation_reward = np.exp(-alpha_far * cube_target_dist)
+        
         # Handle zero quaternions (initialization case)
         cube_norm = np.linalg.norm(cube_ori)
         target_norm = np.linalg.norm(target_ori)
@@ -232,39 +326,74 @@ class DPALI_Hand(MujocoEnv):
         else:
             target_quat = target_ori / target_norm
 
-        ## Orientation Reward
+        ## (3) Orientation Reward
         quat_similarity = np.abs(np.dot(cube_quat, target_quat))
         ori_angle = 2 * np.arccos(np.clip(quat_similarity, 0, 1.0))  # Convert to angle in radians
         ori_reward = 5 * (1 - ori_angle / np.pi)
-        
-        ## Contact Reward
-        approach_reward = 0.0
-        num_contacts = sum(contacts)
-        if (num_contacts == 1) : contact_reward = 0
-        elif (num_contacts == 2) : contact_reward = 0.1
-        elif (num_contacts == 3) : contact_reward = 1.5
-        else: 
+
+        # (4) contacts – encourage a stable 3-finger grasp
+        num_contacts       = sum(contacts)           
+        if num_contacts == 0:
             contact_reward = -0.2
+        elif num_contacts == 1:
+            contact_reward = 0        
+        elif num_contacts == 2:
+            contact_reward = 0.4
+        elif num_contacts == 3:
+            contact_reward = 1
 
-        ## Approach Reward
-        ee_cube_distances = [np.linalg.norm(ee_pos - cube_pos) for ee_pos in end_effector_pos]
-        avg_ee_cube_dist = np.mean(ee_cube_distances)
-        approach_reward = -avg_ee_cube_dist * 0.3
+        centering_reward = 0.0
+        if num_contacts == 3:
+            ee_centroid = np.mean(ee_pos, axis=0)
+            centering_error = np.linalg.norm(ee_centroid - cube_pos)
+            centering_reward = 1.0 - np.clip(centering_error / 0.02, 0.0, 1.0)
 
 
-        ## Table Penalty
-        table_penalty = -5 if table_contact else 0.0
+        shaped_reward = (
+            0.1 * approach_reward
+          + 0.1 * centering_reward
+          + 0.2 * contact_reward
+          + 0.1 * close_manipulation_reward
+          + 0.2 * far_manipulation_reward
+          + 0.3 * ori_reward
+        )
 
-        terminated = False
+        # --------------- sparse bonuses & penalties ----------------------
+        terminated    = False
         success_bonus = 0.0
+        if (cube_target_dist < cfg["success_strict_dist"]
+                and ori_angle  < 0.1
+                and num_contacts >= 2
+                and not table_contact):
+            success_bonus = 400  
+            terminated    = True
 
-        if (ori_angle < 0.1 and num_contacts == 3 and not table_contact):
-            success_bonus = 1000.0
-            terminated = True 
-        
-        reward = ori_reward + contact_reward + approach_reward + table_penalty + success_bonus
+        # Severe penalty for dropping or touching the table
+        drop_penalty  = -1.0 if table_contact else 0.0
 
-        return reward, terminated
+
+        penetration_penalty = 0.0
+        PENALTY_SCALE = 80.0 
+        for p in ee_pos:
+            dist = np.linalg.norm(p - cube_pos)
+            if dist < CUBE_RADIUS:
+                penetration_depth = CUBE_RADIUS - dist
+                penetration_penalty -= PENALTY_SCALE * penetration_depth
+
+        # Small per-step time penalty to encourage speed
+        time_penalty  = cfg["time_penalty"] 
+
+        # --------------- aggregate & normalise ---------------------------
+        total_reward = (
+              shaped_reward
+            + success_bonus
+            + drop_penalty     
+            + time_penalty
+            + penetration_penalty
+        )
+
+        return total_reward, terminated
+
     
     def _get_info(self):
         """Return diagnostic information."""
@@ -273,6 +402,7 @@ class DPALI_Hand(MujocoEnv):
         target_pos = self._get_target_pos()
         target_ori = self._get_target_orientation()
         cube_ori = self._get_cube_orientation()
+        ori_diff = self.quat_angle(cube_ori, target_ori)
 
         # Handle zero quaternions (initialization case)
         cube_norm = np.linalg.norm(cube_ori)
@@ -302,15 +432,11 @@ class DPALI_Hand(MujocoEnv):
             'cube_orientation': cube_ori,
             'target_orientation': target_ori,
             'episode_step': self.current_step,
-            'max_episode_steps': self.max_episode_steps
+            'max_episode_steps': self.max_episode_steps,
+            'seed': self._seed
         }
 
-    # Debug methods
-    def print_End_Effector_pos(self):
-        print(f"End Effector position: {self._get_all_End_Effector_pos()}")
-        
-    def print_cube_pos(self):
-        print(f"Cube position: {self._get_cube_pos()}")
-        
-    def print_target_pos(self):
-        print(f"Target position: {self._get_target_pos()}")
+    # Debug helpers
+    def print_End_Effector_pos(self):  print(self._get_all_End_Effector_pos())
+    def print_cube_pos(self):          print(self._get_cube_pos())
+    def print_target_pos(self):        print(self._get_target_pos())
