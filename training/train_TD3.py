@@ -150,6 +150,7 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
         gamma=0.975,                  # Discount factor
         train_freq=(4, "step"),       # Train after every 4 steps
         gradient_steps=4,             # Do as many gradient steps as environment steps
+        gradient_steps=4,             # Do as many gradient steps as environment steps
         action_noise=action_noise,    # Exploration noise
         policy_delay=2,               # Delay policy updates (key TD3 feature)
         target_policy_noise=0.2,      # Noise added to target policy
@@ -175,8 +176,8 @@ def training_td3(total_timesteps, file_path, log_dir="./training/logs/", eval_fr
     # # Evaluate the model periodically and save the best one
     eval_callback = EvalCallback(
         eval_env,
-        best_model_save_path=os.path.dirname(file_path) + "/best_model/",
-        log_path=log_dir + "eval_logs/",
+        best_model_save_path=os.path.dirname(file_path) + "/checkpoints/best_model/",
+        log_path=log_dir + "/logs/eval_logs/",
         eval_freq=eval_freq,
         n_eval_episodes=10,           # Number of episodes for evaluation
         deterministic=True,           # Use deterministic actions for evaluation
