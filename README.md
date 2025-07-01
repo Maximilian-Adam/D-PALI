@@ -64,7 +64,7 @@ There is a great capacity for future work on this project, as 10 weeks was simpl
 
 Additionally, there were a few areas we were not able to explore with great detail, but could have significant improvements on performance and training:
 ### Imitation Learning
-We were able to conduct a simple imitation learning test for orientation of the cube, which yeilded very good results. The orientation was aorund the same axis as the base of the gripper, so the script simply gave a sinewave input to the relevant actuators to achieve this. Expanding this to more complex tasks may prove to be difficult and tedious, however the resulting improvement in perforamnce may prove to be worth the effort
+We were able to conduct a simple imitation learning test for orientation of the cube, which yeilded very good results. The orientation was aorund the same axis as the base of the gripper, so the script simply gave a sinewave input to the relevant actuators to achieve this. Expanding this to more complex tasks may prove to be difficult and tedious, however the resulting improvement in perforamnce may prove to be worth the effort.
 
 ### Vectorised Environments
 A key struggle we faced during this project was the time it would take models to learn, only for a small tweak to be necessary and the entire process restarted. With vectorised environments, you can significantly reduce the training time of models by having multiple running at once. In fact, with the VecNormalise wrapper used in our TD3 scripts, implementing this would be relatively simple. We unfortunately lacked the compute power to test this ourselves, but it would certainly aid any future development.

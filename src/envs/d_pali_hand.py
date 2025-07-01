@@ -21,8 +21,9 @@ class DPALI_Hand(MujocoEnv):
         "target_random_range_x_y": [-0.03, 0.03],
         "target_random_range_z": [0, 0.04],
         "reward": {
-            "success_strict_dist": 0.008,
-            "success_loose_dist": 0.005,
+            "success_strict_dist_pos": 0.008,
+            "success_loose_dist_pos": 0.005,
+            "success_strict_dist_ori": 0.1,
             "time_penalty": -0.001,
             "normalisation_scale": 1.0, 
         },
@@ -189,7 +190,7 @@ class DPALI_Hand(MujocoEnv):
             cube_ori,
             target_ori,
             cube_to_target_ori,
-            #np.array([quat_similarity]).ravel()
+            np.array([quat_similarity]).ravel()
         ])
         return obs.astype(np.float32)
 
@@ -215,14 +216,18 @@ class DPALI_Hand(MujocoEnv):
         if mocap_id != -1 and self.model.body_mocapid[mocap_id] != -1:
             mocap_addr = self.model.body_mocapid[mocap_id]
 
-            cube_start_pos = self._cube_initial_pos.copy()
-            t_min, t_max = self.config['target_random_range_x_y']
-            t_min_z, t_max_z = self.config['target_random_range_z']
-            offset = self.np_random.uniform(t_min, t_max, size=2)
-            offset_z = self.np_random.uniform(t_min_z, t_max_z)
-            target_pos = cube_start_pos + np.array([offset[0], offset[1], offset_z]) 
-            self.data.mocap_pos[mocap_addr] = target_pos # Use mocap_pos
 
+            ## Randomise target position
+            # cube_start_pos = self._cube_initial_pos.copy()
+            # t_min, t_max = self.config['target_random_range_x_y']
+            # t_min_z, t_max_z = self.config['target_random_range_z']
+            # offset = self.np_random.uniform(t_min, t_max, size=2)
+            # offset_z = self.np_random.uniform(t_min_z, t_max_z)
+            # target_pos = cube_start_pos + np.array([offset[0], offset[1], offset_z]) 
+            # self.data.mocap_pos[mocap_addr] = target_pos # Use mocap_pos
+
+
+            # Randomise target orientation
             rot_axis = [0.0, 0.0, 1.0]
             angle = self.np_random.uniform(0, 2*np.pi)
             target_ori = np.zeros(4)
@@ -304,13 +309,12 @@ class DPALI_Hand(MujocoEnv):
         approach_reward = 1.0 - np.clip(effective_dist / (MAX_APPROACH_DIST - CUBE_RADIUS), 0.0, 1.0)
 
         # (2) manipulation – move the cube towards the target position
-        cube_target_dist = np.linalg.norm(cube_pos - target_pos)
-        # Higher alpha = steeper curve and more emphasis on precision.
-        alpha_close = 80
-        alpha_far = 15
+        # cube_target_dist = np.linalg.norm(cube_pos - target_pos)
+        # alpha_close = 80
+        # alpha_far = 15
 
-        close_manipulation_reward = np.exp(-alpha_close * cube_target_dist)
-        far_manipulation_reward = np.exp(-alpha_far * cube_target_dist)
+        # close_manipulation_reward = np.exp(-alpha_close * cube_target_dist)
+        # far_manipulation_reward = np.exp(-alpha_far * cube_target_dist)
         
         # Handle zero quaternions (initialization case)
         cube_norm = np.linalg.norm(cube_ori)
@@ -342,43 +346,24 @@ class DPALI_Hand(MujocoEnv):
         elif num_contacts == 3:
             contact_reward = 1
 
-        centering_reward = 0.0
-        if num_contacts == 3:
-            ee_centroid = np.mean(ee_pos, axis=0)
-            centering_error = np.linalg.norm(ee_centroid - cube_pos)
-            centering_reward = 1.0 - np.clip(centering_error / 0.02, 0.0, 1.0)
-
 
         shaped_reward = (
-            0.1 * approach_reward
-          + 0.1 * centering_reward
-          + 0.2 * contact_reward
-          + 0.1 * close_manipulation_reward
-          + 0.2 * far_manipulation_reward
-          + 0.3 * ori_reward
+            0.2 * approach_reward
+          + 0.3 * contact_reward
+          + 0.5 * ori_reward
         )
 
         # --------------- sparse bonuses & penalties ----------------------
         terminated    = False
         success_bonus = 0.0
-        if (cube_target_dist < cfg["success_strict_dist"]
-                and ori_angle  < 0.1
-                and num_contacts >= 2
+        if (ori_angle < cfg["success_strict_dist_ori"]
+                and num_contacts == 3
                 and not table_contact):
-            success_bonus = 400  
+            success_bonus = 500  
             terminated    = True
 
         # Severe penalty for dropping or touching the table
         drop_penalty  = -1.0 if table_contact else 0.0
-
-
-        penetration_penalty = 0.0
-        PENALTY_SCALE = 80.0 
-        for p in ee_pos:
-            dist = np.linalg.norm(p - cube_pos)
-            if dist < CUBE_RADIUS:
-                penetration_depth = CUBE_RADIUS - dist
-                penetration_penalty -= PENALTY_SCALE * penetration_depth
 
         # Small per-step time penalty to encourage speed
         time_penalty  = cfg["time_penalty"] 
@@ -389,7 +374,6 @@ class DPALI_Hand(MujocoEnv):
             + success_bonus
             + drop_penalty     
             + time_penalty
-            + penetration_penalty
         )
 
         return total_reward, terminated

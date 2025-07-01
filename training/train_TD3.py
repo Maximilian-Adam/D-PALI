@@ -24,7 +24,7 @@ import traceback
 warnings.simplefilter("error", GLFWError)
 
 """Global configuration parameters for training and evaluation."""
-global_mode = "test"  # Set to "train", "test", "continue", or "hypersearch
+global_mode = "test"  # Set to "train", "test" or "continue"
 global_total_timesteps = 1000000 # Total timesteps for training
 global_eval_freq = 50000 # Frequency of evaluation during training (in steps)
 global_max_episode_steps = 500 # Maximum steps per episode during training
@@ -34,14 +34,15 @@ global_reward_threshold = 2500.0 # Reward threshold for stopping training
 
 global_initial_lr = 0.0007593145723955295 
 global_final_lr = 1e-4
-global_folder = "Ori_V4.0" # Name of folder for saving models (Increment when training from scratch)
-global_version = "v4.0" # Sub-version for tracking changes (increment when you use continue training)
 
-global_save_dir = f"./models/{global_folder}/" # Directory to save models
-global_best_model_path = os.path.join(global_save_dir, "best_model/best_model.zip")
-global_stats_path = os.path.join(global_save_dir, global_version, "vec_normalize.pkl")
-global_old_model_dir = f"./models/{global_folder}/best_model/best_model.zip"
-global_old_stats_path = f"./models/{global_folder}/{global_version}/vec_normalize.pkl" # Make sure this path is correct for your old stats
+global_folder = "Ori_V5.0" # Name of folder for saving models (Increment when training from scratch)
+global_version = "v5.0" # Sub-version for tracking changes (increment when you use continue training)
+
+global_save_dir = "./models/" + global_folder + "/" + global_version # Directory to save models
+global_stats_dir = "./models/" + global_folder + "/" + global_version + "_normalization.pkl" # Directory to save normalization stats
+
+global_old_model_dir = "./models/" + global_folder + "/v5.3"
+global_old_stats_dir =  "./models/" + global_folder + "/v5.3_normalization.pkl"  # Directory for old normalization stats (if continuing training)
 
 global_expert_obs_path = "./training/expert_data/expert_observations.npy"
 global_expert_actions_path = "./training/expert_data/expert_actions.npy"
@@ -74,12 +75,12 @@ def setup(mode="train", log_dir=None, max_episode_steps=500):
             epsilon=1e-8
         )
     elif (mode == "continue"):
-        env = VecNormalize.load(global_old_stats_path, env)
+        env = VecNormalize.load(global_old_stats_dir, env)
         env.training = True
         env.norm_reward = True
 
     elif (mode == "test"):
-        stats_dir = global_stats_path
+        stats_dir = global_stats_dir
         # Load normalization statistics
         try:
             env = VecNormalize.load(stats_dir, env)
@@ -107,7 +108,7 @@ def setup(mode="train", log_dir=None, max_episode_steps=500):
             epsilon=1e-8
         )
     elif (mode == "eval_continue"):
-        stats_dir = global_stats_path
+        stats_dir = global_old_stats_dir
         env = VecNormalize.load(stats_dir, env)
         env.training = False 
         env.norm_reward = False
@@ -304,13 +305,6 @@ def continue_training_td3(model_path, total_timesteps, save_dir, log_dir="./trai
     # Load the saved model
     model = TD3.load(model_path, env=env)
 
-    # Gonna keep this out for now
-    # new_lr = 0.0007593145723955295 / 2; # Static learning rate
-    # model.learning_rate = new_lr  # Update stored value
-    # for param_group in model.actor.optimizer.param_groups:
-    #     param_group['lr'] = new_lr  # Update actual optimizer
-    # for param_group in model.critic.optimizer.param_groups:
-    #     param_group['lr'] = new_lr  # Update actual optimizer
     
     # Set up callbacks
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold = global_reward_threshold, verbose=1)
@@ -478,16 +472,14 @@ if __name__ == "__main__":
         training_td3(global_total_timesteps, global_save_dir)
         
     elif mode == "test":
-        model_to_test = global_best_model_path
-        stats_to_use = global_stats_path
+        model_to_test = global_save_dir
+        stats_to_use = global_stats_dir
 
         testing_td3(model_to_test, num_episodes=5)
         
     elif mode == "continue":
         continue_training_td3(global_old_model_dir, global_total_timesteps, global_save_dir)
-    elif mode == "hypersearch":
-        hyperparameter_search()
         
     else:
-        print("Invalid mode. Use 'train', 'test', 'continue', or 'hypersearch'.")
+        print("Invalid mode. Use 'train', 'test', or 'continue'.")
         exit(1)
